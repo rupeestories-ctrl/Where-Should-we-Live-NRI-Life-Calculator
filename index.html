@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Where should we live? — NRI Life Calculator v4.0</title>
+<meta name="description" content="Pick the story that sounds like yours. Get an honest look at what staying, moving to India, or trying a third country would actually mean for your family.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Where should we live? — a decision tool for NRIs">
+<meta property="og:description" content="Pick the story that sounds like yours. See what the numbers actually say.">
+<meta property="og:url" content="https://rupeestories-ctrl.github.io/nri-life-calculator/">
+<meta property="og:image" content="https://rupeestories-ctrl.github.io/nri-life-calculator/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#1F1B15">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧭</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FAF6EE; --paper-shade:#F1EBDE;
+  --ink:#1F1B15; --ink-soft:#3A342A;
+  --muted:#6E655A; --rule:#C8B79A; --rule-soft:#DFD3B8;
+  --sindoor:#B2371F; --bluehour:#2A3A5C;
+  --leaf:#4A6A3E; --amber:#8C5A1E; --amber-soft:#F1E5D0;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Instrument Sans',sans-serif;background:var(--paper);color:var(--ink);line-height:1.55;font-size:16px;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+button{font:inherit;color:inherit;cursor:pointer;background:none;border:none}
+:focus-visible{outline:2.5px solid var(--sindoor);outline-offset:3px;border-radius:2px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+.masthead{border-bottom:1px solid var(--rule);padding:14px 22px;display:flex;justify-content:space-between;align-items:baseline;gap:16px;font-size:13px}
+.brand{font-family:'Fraunces',serif;font-weight:600;font-variation-settings:"opsz" 14}
+.brand .amp{color:var(--sindoor);font-style:italic;font-weight:400;margin:0 2px}
+.masthead nav{display:flex;gap:22px;color:var(--muted)}
+.masthead nav a{color:inherit;text-decoration:none;border-bottom:1px solid transparent;padding-bottom:1px}
+.masthead nav a:hover{border-bottom-color:var(--ink)}
+@media(max-width:640px){.masthead nav{display:none}}
+
+.hero{max-width:960px;margin:0 auto;padding:64px 22px 32px}
+.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.18em;color:var(--muted);margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.eyebrow::before{content:'';width:24px;height:1px;background:var(--rule)}
+h1.title{font-family:'Fraunces',serif;font-variation-settings:"opsz" 120;font-weight:500;font-size:clamp(44px,8vw,88px);line-height:0.98;letter-spacing:-0.02em;color:var(--ink);margin-bottom:24px}
+h1.title em{font-style:italic;font-weight:400;color:var(--sindoor);font-variation-settings:"opsz" 120}
+.dek{font-family:'Fraunces',serif;font-variation-settings:"opsz" 24;font-weight:400;font-size:clamp(18px,2.4vw,22px);line-height:1.5;color:var(--ink-soft);max-width:640px;margin-bottom:12px}
+.privacy-line{font-size:13px;color:var(--muted);margin-top:20px}
+.privacy-line .dot{color:var(--rule);margin:0 6px}
+
+.section-rule{max-width:960px;margin:56px auto 32px;padding:0 22px;display:flex;gap:24px;align-items:baseline}
+.section-rule .num{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);letter-spacing:.1em}
+.section-rule .prompt{font-family:'Fraunces',serif;font-variation-settings:"opsz" 36;font-weight:500;font-size:clamp(22px,3vw,32px);line-height:1.2;flex:1}
+
+.vignettes{max-width:960px;margin:0 auto;padding:0 22px 80px;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:2px}
+@media(max-width:900px){.vignettes{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:580px){.vignettes{grid-template-columns:1fr}}
+.card{background:var(--paper);padding:24px 22px 22px;text-align:left;width:100%;transition:background .15s ease;position:relative;display:flex;flex-direction:column;gap:14px;min-height:210px}
+.card:hover{background:var(--paper-shade)}
+.card:hover .card-title{color:var(--sindoor)}
+.card-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.12em}
+.card-title{font-family:'Fraunces',serif;font-variation-settings:"opsz" 30;font-weight:500;font-size:20px;line-height:1.2;color:var(--ink);transition:color .15s ease}
+.card-body{font-size:14.5px;line-height:1.55;color:var(--ink-soft);flex:1}
+.card-q{font-family:'Fraunces',serif;font-style:italic;font-weight:400;font-size:15px;color:var(--sindoor);line-height:1.4;margin-top:4px;font-variation-settings:"opsz" 20}
+.card-signal{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.chip{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted);padding:2px 7px;background:var(--paper-shade);border-radius:2px;letter-spacing:.02em}
+.card.fallback{background:var(--paper-shade);min-height:auto;padding:20px 22px;justify-content:center}
+.card.fallback .card-title{font-size:17px;color:var(--muted)}
+.card.fallback .card-body{font-size:13.5px}
+
+.result-wrap{display:none;max-width:960px;margin:0 auto;padding:32px 22px 80px}
+.result-wrap.active{display:block}
+.back-link{font-size:13px;color:var(--muted);margin-bottom:20px;display:inline-flex;align-items:center;gap:8px;text-decoration:none}
+.back-link:hover{color:var(--ink)}
+.your-story{border-left:2px solid var(--sindoor);padding:4px 0 4px 20px;margin-bottom:40px;max-width:640px}
+.your-story .eyebrow{margin-bottom:12px}
+.your-story h2{font-family:'Fraunces',serif;font-variation-settings:"opsz" 36;font-weight:500;font-size:24px;line-height:1.2;margin-bottom:10px}
+.your-story p{font-size:15px;color:var(--ink-soft);margin-bottom:8px}
+.your-story .q{font-family:'Fraunces',serif;font-style:italic;color:var(--sindoor);font-size:16px;margin-top:8px}
+
+.result-headline{padding:32px 0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);margin-bottom:32px}
+.result-headline .eyebrow{margin-bottom:16px}
+.headline{font-family:'Fraunces',serif;font-variation-settings:"opsz" 96;font-weight:500;font-size:clamp(26px,4.5vw,40px);line-height:1.15;letter-spacing:-0.01em}
+.headline em{font-style:italic;color:var(--sindoor);font-weight:400}
+.headline .location-a{color:var(--sindoor)}
+.headline .caveat{display:block;font-family:'Instrument Sans',sans-serif;font-style:normal;font-weight:400;font-size:15px;color:var(--muted);margin-top:14px;line-height:1.5}
+
+.top3{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);margin-bottom:32px}
+@media(max-width:720px){.top3{grid-template-columns:1fr}}
+.rank{background:var(--paper);padding:22px 20px}
+.rank .rank-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.12em;margin-bottom:8px}
+.rank .rank-loc{font-family:'Fraunces',serif;font-variation-settings:"opsz" 30;font-weight:500;font-size:22px;line-height:1.15;margin-bottom:2px}
+.rank .rank-loc .flag{margin-right:6px}
+.rank .rank-sub{font-size:12px;color:var(--muted);margin-bottom:16px}
+.rank .metric-row{display:flex;justify-content:space-between;padding:9px 0;border-top:1px solid var(--rule-soft);font-size:13px}
+.rank .metric-label{color:var(--muted)}
+.rank .metric-val{font-family:'JetBrains Mono',monospace;font-weight:500;color:var(--ink)}
+.rank .metric-val.pos{color:var(--leaf)}
+.rank .metric-val.neg{color:var(--sindoor)}
+.rank .verdict{margin-top:16px;padding-top:14px;border-top:1px solid var(--rule-soft);font-size:13.5px;line-height:1.5;color:var(--ink-soft)}
+
+.chart-block{margin-bottom:32px}
+.chart-block h3{font-family:'Fraunces',serif;font-variation-settings:"opsz" 30;font-weight:500;font-size:20px;margin-bottom:6px}
+.chart-block .sub{font-size:13px;color:var(--muted);margin-bottom:16px}
+canvas{width:100%!important;max-width:100%}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;font-size:12px;color:var(--muted)}
+.legend-dot{display:inline-block;width:12px;height:3px;vertical-align:middle;margin-right:6px}
+
+.guardrail{background:var(--amber-soft);border:1px solid var(--amber);border-radius:2px;padding:16px 20px;margin-bottom:24px;font-size:14px;line-height:1.55}
+.guardrail strong{color:var(--amber);font-weight:600}
+
+.adjust{border-top:1px solid var(--rule);padding-top:32px;margin-top:16px}
+.adjust summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:baseline;padding-bottom:16px}
+.adjust summary::-webkit-details-marker{display:none}
+.adjust summary h3{font-family:'Fraunces',serif;font-variation-settings:"opsz" 30;font-weight:500;font-size:22px}
+.adjust summary .toggle{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.12em}
+.adjust[open] summary .toggle::before{content:'HIDE ← '}
+.adjust:not([open]) summary .toggle::before{content:'ADJUST → '}
+.adjust-body{display:grid;grid-template-columns:1fr 1fr;gap:20px 28px;padding:12px 0 24px}
+@media(max-width:640px){.adjust-body{grid-template-columns:1fr}}
+.field label{display:block;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.field input,.field select{width:100%;font:inherit;padding:11px 12px;border:1px solid var(--rule);border-radius:2px;background:var(--paper);color:var(--ink);font-family:'JetBrains Mono',monospace;font-size:14px}
+.field input:focus,.field select:focus{outline:none;border-color:var(--ink)}
+.field select{font-family:'Instrument Sans',sans-serif;font-size:14px}
+.field .hint{font-size:12px;color:var(--muted);margin-top:4px}
+.recompute{margin-top:12px;padding:12px 24px;background:var(--ink);color:var(--paper);border-radius:2px;font-size:14px;font-weight:600;letter-spacing:.01em}
+.recompute:hover{background:var(--sindoor)}
+
+footer{border-top:1px solid var(--rule);padding:32px 22px 40px;max-width:960px;margin:60px auto 0;font-size:13px;color:var(--muted);line-height:1.6}
+footer .disclaimer{max-width:640px;margin-bottom:12px}
+footer .disclaimer strong{color:var(--ink)}
+footer .built{font-family:'Fraunces',serif;font-style:italic;font-variation-settings:"opsz" 18}
+footer a{color:inherit;border-bottom:1px solid var(--rule)}
+footer a:hover{color:var(--ink)}
+.version{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.1em}
+
+@media(max-width:640px){
+  .hero{padding:44px 22px 28px}
+  .section-rule{margin-top:40px}
+  .your-story{margin-bottom:32px}
+  .result-headline{padding:24px 0}
+}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="brand">Where should we live<span class="amp">?</span></div>
+  <nav>
+    <a href="#stories">Stories</a>
+    <a href="#" onclick="event.preventDefault();openAdvanced()">Full form</a>
+    <a href="https://rupeestories.substack.com" target="_blank" rel="noopener">RupeeStories</a>
+  </nav>
+</header>
+
+<div id="landing">
+<section class="hero">
+  <div class="eyebrow">A tool for r/RupeeStories</div>
+  <h1 class="title">Where should <em>we</em> live<em>?</em></h1>
+  <p class="dek">The question you have been avoiding, worked out in numbers. Pick the story that sounds like yours. See what staying, moving to India, or trying somewhere else would actually mean.</p>
+  <p class="privacy-line">Everything runs in your browser <span class="dot">·</span> nothing is saved anywhere <span class="dot">·</span> no login</p>
+</section>
+
+<div class="section-rule" id="stories">
+  <span class="num">01</span>
+  <p class="prompt">Pick the story that sounds like yours.</p>
+</div>
+
+<div class="vignettes" id="vignettes"></div>
+</div>
+
+<div id="result" class="result-wrap">
+  <a href="#" class="back-link" onclick="event.preventDefault();showLanding()">← back to the stories</a>
+
+  <div class="your-story">
+    <div class="eyebrow">Your story</div>
+    <h2 id="story-title"></h2>
+    <p id="story-body"></p>
+    <p class="q" id="story-q"></p>
+  </div>
+
+  <div id="guardrail-slot"></div>
+
+  <section class="result-headline">
+    <div class="eyebrow">The short answer</div>
+    <div class="headline" id="headline"></div>
+  </section>
+
+  <div class="top3" id="top3"></div>
+
+  <div class="chart-block">
+    <h3>Where your money goes over the next decade</h3>
+    <p class="sub">Projected net worth in today's dollars. Assumes the tier of life you would want, less what you would actually spend, invested at 5 percent real return. Deficits drain savings.</p>
+    <canvas id="chart" height="240" role="img" aria-label="Net worth trajectory by location"></canvas>
+    <div class="legend" id="legend"></div>
+  </div>
+
+  <details class="adjust">
+    <summary>
+      <h3>Something off? Adjust here.</h3>
+      <span class="toggle"></span>
+    </summary>
+    <div class="adjust-body">
+      <div class="field">
+        <label for="a-income">Household income (USD/year)</label>
+        <input type="number" id="a-income" inputmode="decimal">
+        <div class="hint">Gross, before tax. Both spouses combined.</div>
+      </div>
+      <div class="field">
+        <label for="a-networth">Net worth (USD)</label>
+        <input type="number" id="a-networth" inputmode="decimal">
+        <div class="hint">Retirement + brokerage. Exclude home equity you would not sell.</div>
+      </div>
+      <div class="field">
+        <label for="a-age">Your age</label>
+        <input type="number" id="a-age" inputmode="decimal">
+      </div>
+      <div class="field">
+        <label for="a-kids">Kids at home</label>
+        <select id="a-kids">
+          <option value="0">None</option>
+          <option value="1">1 child</option>
+          <option value="2">2 children</option>
+          <option value="3">3 or more</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="a-tier">Lifestyle you want to keep</label>
+        <select id="a-tier">
+          <option value="1">Basic — modest, no help</option>
+          <option value="2">Comfortable — good neighborhood, some help in India</option>
+          <option value="3">Premium — private school, full help, business class regional</option>
+          <option value="4">Luxury — top schools, staff, premium everything</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="a-eduyears">Years until oldest starts college</label>
+        <input type="number" id="a-eduyears" inputmode="decimal" min="0" max="20">
+        <div class="hint">Only matters if you plan to fund college. Set to 0 to skip.</div>
+      </div>
+    </div>
+    <button class="recompute" onclick="recompute()">Recalculate</button>
+  </details>
+</div>
+
+<footer>
+  <p class="disclaimer">
+    <strong>Planning estimate, not advice.</strong> The tool uses simplified effective tax rates and today's dollars. Your city, employer, school, insurance, account type, treaty position, and residence history all move these numbers. Talk to the right licensed advisor before you decide anything.
+  </p>
+  <p>
+    Data version July 22, 2026 <span class="dot">·</span>
+    <a href="#" onclick="event.preventDefault();openAdvanced()">Open the full form</a> <span class="dot">·</span>
+    <span class="built">Built for r/RupeeStories.</span>
+    <span class="version"> v4.0</span>
+  </p>
+</footer>
+
+<script>
+/* v3.3.1 engine, trimmed to what v4.0 needs */
+const LOC = {
+  usa_hcol:{name:'USA · HCOL', sub:'SF Bay, NYC, Seattle', flag:'🇺🇸',
+    costs:[5500,8800,14000,23000],
+    taxBands:[[0,.14],[80000,.28],[160000,.35],[250000,.41],[400000,.45],[700000,.47]],
+    qol:{safety:7,healthcare:9,aqi:7,convenience:5,wlb:5,education:9,community:6},
+    visaStability:4, indiaTripCost:4800,
+    schoolSurcharge:{public:0,private:800,intl:1400},
+    healthSurcharge:{public:0,private:500,premium:1200}},
+  usa_mcol:{name:'USA · MCOL', sub:'Austin, Denver, Chicago', flag:'🇺🇸',
+    costs:[3700,5900,9500,16000],
+    taxBands:[[0,.11],[80000,.22],[150000,.29],[250000,.34],[400000,.38],[700000,.41]],
+    qol:{safety:7,healthcare:8,aqi:7,convenience:5,wlb:6,education:8,community:6},
+    visaStability:4, indiaTripCost:4200,
+    schoolSurcharge:{public:0,private:650,intl:1100},
+    healthSurcharge:{public:0,private:400,premium:900}},
+  india_metro:{name:'India · Metro', sub:'Bangalore, Mumbai, Hyderabad', flag:'🇮🇳',
+    costs:[750,1600,3200,7200],
+    taxBands:[[0,.02],[15000,.06],[30000,.14],[60000,.24],[120000,.30],[180000,.33],[300000,.37],[700000,.39]],
+    qol:{safety:6,healthcare:7,aqi:3,convenience:10,wlb:7,education:8,community:10},
+    visaStability:10, indiaTripCost:0, rnorBenefit:true,
+    schoolSurcharge:{public:0,private:280,intl:900},
+    healthSurcharge:{public:0,private:80,premium:200}},
+  india_t2:{name:'India · Tier 2', sub:'Pune, Chennai, Kochi', flag:'🇮🇳',
+    costs:[520,1100,2200,4800],
+    taxBands:[[0,.02],[15000,.06],[30000,.14],[60000,.24],[120000,.30],[180000,.33],[300000,.37],[700000,.39]],
+    qol:{safety:7,healthcare:6,aqi:5,convenience:9,wlb:8,education:7,community:10},
+    visaStability:10, indiaTripCost:0, rnorBenefit:true,
+    schoolSurcharge:{public:0,private:180,intl:600},
+    healthSurcharge:{public:0,private:60,premium:150}},
+  india_small:{name:'India · Small City', sub:'Hometown / coastal', flag:'🇮🇳',
+    costs:[380,750,1500,3200],
+    taxBands:[[0,.02],[15000,.06],[30000,.14],[60000,.24],[120000,.30],[180000,.33],[300000,.37],[700000,.39]],
+    qol:{safety:8,healthcare:5,aqi:6,convenience:9,wlb:9,education:6,community:10},
+    visaStability:10, indiaTripCost:0, rnorBenefit:true,
+    schoolSurcharge:{public:0,private:80,intl:300},
+    healthSurcharge:{public:0,private:50,premium:100}},
+  uk:{name:'United Kingdom', sub:'London weighted', flag:'🇬🇧',
+    costs:[4400,7100,11500,19500],
+    taxBands:[[0,.10],[40000,.17],[80000,.26],[125000,.33],[200000,.40],[320000,.44],[700000,.47]],
+    qol:{safety:7,healthcare:8,aqi:7,convenience:6,wlb:7,education:9,community:8},
+    visaStability:6, indiaTripCost:3500,
+    schoolSurcharge:{public:0,private:900,intl:1600},
+    healthSurcharge:{public:0,private:230,premium:500}},
+  uae:{name:'UAE · Dubai', sub:'Dubai & Abu Dhabi', flag:'🇦🇪',
+    costs:[4200,6800,11000,19000],
+    taxBands:[[0,0.00]],
+    qol:{safety:8,healthcare:7,aqi:6,convenience:8,wlb:6,education:8,community:9},
+    visaStability:4, indiaTripCost:1800,
+    schoolSurcharge:{public:0,private:700,intl:1400},
+    healthSurcharge:{public:0,private:420,premium:800}},
+  singapore:{name:'Singapore', sub:'City-state', flag:'🇸🇬',
+    costs:[5000,8100,13000,22000],
+    taxBands:[[0,.02],[50000,.06],[100000,.10],[200000,.13],[400000,.17],[1200000,.21]],
+    qol:{safety:10,healthcare:9,aqi:8,convenience:8,wlb:6,education:10,community:7},
+    visaStability:6, indiaTripCost:1700,
+    schoolSurcharge:{public:0,private:800,intl:1600},
+    healthSurcharge:{public:0,private:380,premium:750}},
+  australia:{name:'Australia', sub:'Sydney & Melbourne', flag:'🇦🇺',
+    costs:[4400,6900,11000,18500],
+    taxBands:[[0,.12],[65000,.24],[130000,.32],[195000,.37],[325000,.41],[700000,.44]],
+    qol:{safety:8,healthcare:8,aqi:9,convenience:6,wlb:9,education:9,community:7},
+    visaStability:8, indiaTripCost:3300,
+    schoolSurcharge:{public:0,private:500,intl:1000},
+    healthSurcharge:{public:0,private:180,premium:400}},
+  portugal:{name:'Portugal', sub:'Lisbon, Porto', flag:'🇵🇹',
+    costs:[2500,4000,6500,11000],
+    taxBands:[[0,.15],[25000,.28],[55000,.38],[85000,.44],[175000,.48],[500000,.48]],
+    qol:{safety:9,healthcare:7,aqi:9,convenience:7,wlb:9,education:7,community:4},
+    visaStability:7, indiaTripCost:3200, ificiEligible:true,
+    schoolSurcharge:{public:0,private:200,intl:700},
+    healthSurcharge:{public:0,private:50,premium:180}},
+  canada:{name:'Canada', sub:'Toronto, Vancouver', flag:'🇨🇦',
+    costs:[3300,5200,8300,14000],
+    taxBands:[[0,.08],[47000,.225],[73000,.278],[110000,.335],[180000,.38],[290000,.42],[510000,.45]],
+    qol:{safety:8,healthcare:8,aqi:9,convenience:6,wlb:8,education:9,community:8},
+    visaStability:7, indiaTripCost:3600,
+    schoolSurcharge:{public:0,private:600,intl:1200},
+    healthSurcharge:{public:0,private:150,premium:350}},
+};
+
+const INDIA_IDS=['india_metro','india_t2','india_small'];
+const TIERS=['Basic','Comfortable','Premium','Luxury'];
+const FAMILY_MULT={'0':0.82,'1':1.00,'2':1.28,'3':1.50};
+const LOCAL_INCOME_MULT={usa_hcol:1.00,usa_mcol:0.90,uk:0.70,uae:0.85,singapore:0.85,australia:0.70,germany:0.65,portugal:0.45,canada:0.75,india_metro:0.40,india_t2:0.32,india_small:0.25};
+const EDU_PRESETS={na:0,local_public:15000,india_private_engg_med:60000,uk_australia:160000,us_public_instate:100000,us_public_outofstate:220000,us_private:320000};
+
+const clamp=(n,lo,hi)=>Math.max(lo,Math.min(hi,n));
+const fmtK=n=>{const s=n<0?'-':'';const a=Math.abs(n);if(a>=1e6)return s+'$'+(a/1e6).toFixed(a>=1e7?0:1)+'M';if(a>=1000)return s+'$'+Math.round(a/1000)+'k';return s+'$'+Math.round(a);};
+const fmtD=n=>(n<0?'-':'')+'$'+Math.abs(Math.round(n)).toLocaleString();
+
+function effectiveRate(income,bands){if(!income||income<=0)return 0;for(let i=0;i<bands.length-1;i++){const[lo,rLo]=bands[i],[hi,rHi]=bands[i+1];if(income<=hi){const t=(income-lo)/(hi-lo);return rLo+t*(rHi-rLo);}}return bands[bands.length-1][1];}
+function grossFor(inp,locId){if(inp.work==='fire')return inp.savings*0.04;const base=Math.max(0,inp.income);if(inp.work==='local'&&locId!==inp.currentLoc){const d=LOCAL_INCOME_MULT[locId]??0.5;const c=LOCAL_INCOME_MULT[inp.currentLoc]??1;return base*d/c;}return base;}
+function eduMonthlySavings(inp){const perChild=EDU_PRESETS[inp.eduTarget]||0;const kids=inp.eduKidsCount||0;if(perChild<=0||kids<=0)return 0;const totalNeeded=perChild*kids;const years=Math.max(0.5,inp.eduYearsOut??10);const months=years*12;const rMo=(inp.invReturn||0.05)/12;if(rMo<=0)return totalNeeded/months;const factor=(Math.pow(1+rMo,months)-1)/rMo;return totalNeeded/factor;}
+function tripCostFor(locId,inp){const cur=LOC[inp.currentLoc]?LOC[inp.currentLoc].indiaTripCost:4200;const scale=cur>0?(inp.indiaTripBudget||0)/cur:1;return Math.round((LOC[locId].indiaTripCost||0)*scale);}
+function monthlyExtras(locId,inp,year){year=year||1;const trips=tripCostFor(locId,inp);const eduYears=Math.max(1,inp.eduYearsOut??10);const eduContrib=year<=eduYears?eduMonthlySavings(inp):0;return Math.max(0,inp.remittance||0)+trips/12+Math.max(0,inp.debtMonthly||0)+eduContrib;}
+function permanentMonthlyExtras(locId,inp){return (inp.remittance||0)+tripCostFor(locId,inp)/12+(inp.debtMonthly||0);}
+function headlineYearFor(inp){return inp.work==='fire'?clamp(parseInt(inp.rnorYears||0),0,3)+1:1;}
+function taxRateFor(locId,inp,year,gross){const loc=LOC[locId];const isFire=inp.work==='fire';let rate=effectiveRate(gross,loc.taxBands);if(isFire){rate*=0.60;const rn=clamp(parseInt(inp.rnorYears||0),0,3);if(INDIA_IDS.includes(locId)&&loc.rnorBenefit&&year<=rn)rate=0;}else if(locId==='portugal'&&inp.work==='remote'&&loc.ificiEligible&&inp.portugalIfici==='yes'&&year<=10){rate=Math.min(rate,0.28);}return clamp(rate,0,0.65);}
+function netMoAt(locId,inp,year,gross){const rate=taxRateFor(locId,inp,year,gross);return (Math.max(0,gross)*(1-rate))/12-monthlyExtras(locId,inp,year);}
+function childCountFor(f){return parseInt(f)||0;}
+function getTierCost(locId,tier,inp){const loc=LOC[locId];const base=loc.costs[clamp(tier,0,3)];const fm=FAMILY_MULT[String(inp.kids||0)]||1.00;const kids=childCountFor(inp.kids);const school=((loc.schoolSurcharge||{})[inp.schoolPref||'public']||0)*kids;const health=(loc.healthSurcharge||{})[inp.healthPref||'public']||0;return Math.round(base*fm+school+health);}
+function fireYears(locId,inp,cost,rtn){const target=(cost+permanentMonthlyExtras(locId,inp))*12*25;const isFire=inp.work==='fire';let gross=grossFor(inp,locId);let bal=inp.savings;for(let y=0;y<=50;y++){if(bal>=target)return y;if(y>0&&!isFire)gross*=(1+(inp.incomeGrowth||0));const netMo=netMoAt(locId,inp,y+1,gross);bal=bal*(1+rtn)+(netMo-cost)*12-(isFire?gross:0);if(bal<=0)return null;}return null;}
+function netWorthTrajectory(locId,inp,cost,rtn,years){const arr=[inp.savings];let bal=inp.savings;let gross=grossFor(inp,locId);const isFire=inp.work==='fire';for(let y=1;y<=years;y++){if(y>1&&!isFire)gross*=(1+(inp.incomeGrowth||0));const netMo=netMoAt(locId,inp,y,gross);bal=Math.max(0,bal*(1+rtn)+(netMo-cost)*12-(isFire?gross:0));arr.push(Math.round(bal));}return arr;}
+
+/* vignettes */
+const VIGNETTES=[
+  {n:1,title:"The first year math",body:"I finished school last year. My first offer was 145. My friends in Bangalore made half that but they own a car. My rent is 2,600 and my parents are wondering when I will visit.",q:"Is this really the deal I signed up for?",chips:["H-1B","single","early career"],inputs:{income:145000,networth:20000,age:26,retireAge:55,kids:0,tier:2,work:'local',currentLoc:'usa_mcol',visa:'h1b',eduTarget:'na',eduKidsCount:0,eduYearsOut:0,remittance:200,debtMonthly:400,indiaTripBudget:3500,parentsLoc:'india',compareIds:['usa_mcol','india_metro','india_t2','uae','singapore']}},
+  {n:2,title:"Eleven years in the queue",body:"I have been on H-1B for eleven years. Both kids were born here. My I-140 was approved in 2019. My priority date has not moved. My daughter is asking why we cannot buy a house.",q:"Do I keep waiting, or do we go?",chips:["H-1B","2 kids","stuck"],inputs:{income:220000,networth:380000,age:38,retireAge:55,kids:2,tier:3,work:'same',currentLoc:'usa_mcol',visa:'h1b',eduTarget:'us_public_instate',eduKidsCount:2,eduYearsOut:10,remittance:500,debtMonthly:800,indiaTripBudget:5000,parentsLoc:'india',compareIds:['usa_mcol','india_metro','india_t2','uae','singapore','australia']}},
+  {n:3,title:"The green card, finally",body:"The green card arrived three years ago. The kids are settled. My mother had a fall last month. I flew home for two weeks and everything about the trip felt urgent.",q:"Did I earn the freedom to move, or the obligation to stay?",chips:["GC","2 kids","parents aging"],inputs:{income:240000,networth:620000,age:42,retireAge:58,kids:2,tier:3,work:'same',currentLoc:'usa_mcol',visa:'gc',eduTarget:'us_public_instate',eduKidsCount:2,eduYearsOut:9,remittance:800,debtMonthly:1200,indiaTripBudget:5500,parentsLoc:'india',compareIds:['usa_mcol','india_metro','india_t2','india_small','uk']}},
+  {n:4,title:"The Exeter question",body:"I am 48. Green card since 2022. One daughter at boarding school in New Hampshire. The younger one is in middle school here. Our net worth is around 2.5 million. I keep opening a spreadsheet and closing it.",q:"If not now, then when?",chips:["GC","2 kids","pre-FIRE"],inputs:{income:400000,networth:2500000,age:48,retireAge:55,kids:2,tier:3,work:'same',currentLoc:'usa_hcol',visa:'gc',eduTarget:'us_private',eduKidsCount:2,eduYearsOut:6,remittance:800,debtMonthly:1500,indiaTripBudget:6000,parentsLoc:'india',compareIds:['usa_hcol','india_metro','india_t2','india_small','portugal','uae']}},
+  {n:5,title:"The wait that ended too late",body:"I became a citizen last year. My father passed six months before my ceremony. My mother lives alone in Chennai. I have three weeks of PTO.",q:"Is a passport worth what it cost me?",chips:["citizen","aging parent","forced choice"],inputs:{income:210000,networth:800000,age:45,retireAge:60,kids:1,tier:3,work:'same',currentLoc:'usa_mcol',visa:'citizen',eduTarget:'us_public_instate',eduKidsCount:1,eduYearsOut:8,remittance:1500,debtMonthly:600,indiaTripBudget:6000,parentsLoc:'india',compareIds:['usa_mcol','india_metro','india_t2','india_small','uk']}},
+  {n:6,title:"Both of us, and the tax",body:"We both work in tech. Combined we make around 380. No kids yet. A friend moved to Dubai two years ago and shows us his savings on WhatsApp.",q:"Do we chase the tax window while we still can?",chips:["DINK","high income","tax question"],inputs:{income:380000,networth:520000,age:34,retireAge:50,kids:0,tier:3,work:'same',currentLoc:'usa_hcol',visa:'gc',eduTarget:'na',eduKidsCount:0,eduYearsOut:0,remittance:400,debtMonthly:0,indiaTripBudget:5000,parentsLoc:'india',compareIds:['usa_hcol','uae','singapore','india_metro','portugal']}},
+  {n:7,title:"The laptop, the passport, the beach",body:"I am a remote engineer. My employer does not care where I sit. I have been in the same US suburb for nine years. Someone posted a Lisbon apartment for 1,400 euros.",q:"Am I actually free, or just telling myself I am?",chips:["remote","portable","GC"],inputs:{income:200000,networth:340000,age:36,retireAge:52,kids:0,tier:2,work:'remote',currentLoc:'usa_mcol',visa:'gc',eduTarget:'na',eduKidsCount:0,eduYearsOut:0,remittance:300,debtMonthly:0,indiaTripBudget:3000,parentsLoc:'india',portugalIfici:'yes',compareIds:['usa_mcol','portugal','india_metro','india_t2','uae']}},
+  {n:8,title:"The 3.2 million question",body:"We have 3.2 million between us. I am 52, my husband is 54. The kids are done with college. Every article I read says we can retire in India for one tenth the cost.",q:"Is that true, or is that the version I want to believe?",chips:["pre-FIRE","empty nest","retire where"],inputs:{income:0,networth:3200000,age:52,retireAge:52,kids:0,tier:3,work:'fire',currentLoc:'usa_hcol',visa:'gc',eduTarget:'na',eduKidsCount:0,eduYearsOut:0,remittance:1000,debtMonthly:0,indiaTripBudget:7000,parentsLoc:'india',rnorYears:2,compareIds:['usa_hcol','india_metro','india_t2','india_small','portugal']}},
+  {n:9,title:"The call from Hyderabad",body:"My father was admitted last night. My mother sounded calm on the phone which was worse than crying. My H-1B extension is pending. I have not told my manager yet.",q:"What do I do in the next 72 hours?",chips:["crisis","H-1B","forced timeline"],inputs:{income:180000,networth:220000,age:37,retireAge:55,kids:2,tier:2,work:'local',currentLoc:'usa_mcol',visa:'h1b',eduTarget:'us_public_instate',eduKidsCount:2,eduYearsOut:12,remittance:800,debtMonthly:1400,indiaTripBudget:4000,parentsLoc:'india',compareIds:['usa_mcol','india_metro','india_t2','india_small']}},
+  {n:10,title:"The H4 year",body:"My wife left her job in Chennai when I brought her here. Her EAD paperwork has been pending for eleven months. She was a product manager. Now she watches YouTube in the afternoons.",q:"Whose career am I building?",chips:["H-1B primary","H4 spouse","one income"],inputs:{income:170000,networth:190000,age:33,retireAge:55,kids:1,tier:2,work:'local',currentLoc:'usa_mcol',visa:'h1b',eduTarget:'us_public_instate',eduKidsCount:1,eduYearsOut:12,remittance:600,debtMonthly:600,indiaTripBudget:4000,parentsLoc:'india',compareIds:['usa_mcol','india_metro','india_t2','uae','singapore']}},
+  {n:11,title:"The private school trap",body:"Both kids in private school. Sixty thousand a year, each. We told ourselves we would move before this stage. The older one starts high school in the fall.",q:"Did I commit to this future without noticing?",chips:["private school","2 kids","GC"],inputs:{income:320000,networth:900000,age:44,retireAge:58,kids:2,tier:3,work:'same',currentLoc:'usa_hcol',visa:'gc',eduTarget:'us_private',eduKidsCount:2,eduYearsOut:5,remittance:600,debtMonthly:2500,indiaTripBudget:5500,parentsLoc:'india',schoolPref:'private',compareIds:['usa_hcol','usa_mcol','india_metro','india_t2','uk']}},
+];
+
+/* render landing */
+const grid=document.getElementById('vignettes');
+VIGNETTES.forEach(v=>{
+  const btn=document.createElement('button');
+  btn.className='card';
+  btn.type='button';
+  btn.setAttribute('aria-label','Story '+v.n+': '+v.title+'. '+v.body);
+  btn.onclick=()=>pickStory(v.n);
+  btn.innerHTML='<div class="card-num">STORY '+String(v.n).padStart(2,'0')+'</div>'+
+    '<div class="card-title">'+v.title+'</div>'+
+    '<div class="card-body">'+v.body+'</div>'+
+    '<div class="card-q">'+v.q+'</div>'+
+    '<div class="card-signal">'+v.chips.map(c=>'<span class="chip">'+c+'</span>').join('')+'</div>';
+  grid.appendChild(btn);
+});
+const fallback=document.createElement('button');
+fallback.className='card fallback';
+fallback.type='button';
+fallback.setAttribute('aria-label','None of these fit — open the full form');
+fallback.onclick=()=>openAdvanced();
+fallback.innerHTML='<div class="card-num">— OR —</div>'+
+  '<div class="card-title">My situation is different →</div>'+
+  '<div class="card-body">Open the full form and set every number yourself.</div>';
+grid.appendChild(fallback);
+
+/* flow */
+let CURRENT_STORY=null;
+let CURRENT_INPUTS=null;
+
+function pickStory(n){
+  const v=VIGNETTES.find(x=>x.n===n);
+  if(!v)return;
+  CURRENT_STORY=v;
+  CURRENT_INPUTS=buildInputs(v.inputs);
+  document.getElementById('story-title').textContent=v.title;
+  document.getElementById('story-body').textContent=v.body;
+  document.getElementById('story-q').textContent=v.q;
+  document.getElementById('a-income').value=v.inputs.income;
+  document.getElementById('a-networth').value=v.inputs.networth;
+  document.getElementById('a-age').value=v.inputs.age;
+  document.getElementById('a-kids').value=v.inputs.kids;
+  document.getElementById('a-tier').value=v.inputs.tier;
+  document.getElementById('a-eduyears').value=v.inputs.eduYearsOut;
+  compute();
+  showResult();
+}
+
+function buildInputs(p){
+  return {income:p.income,savings:p.networth,invReturn:0.05,remittance:p.remittance,indiaTripBudget:p.indiaTripBudget,desiredTier:p.tier-1,visa:p.visa,work:p.work,currentLoc:p.currentLoc,horizon:10,age:p.age,retireAge:p.retireAge,schoolPref:p.schoolPref||'public',healthPref:'private',kids:String(p.kids),incomeGrowth:0.02,riskTol:'med',parentsLoc:p.parentsLoc,debtMonthly:p.debtMonthly,eduKidsCount:p.eduKidsCount,eduTarget:p.eduTarget,eduYearsOut:p.eduYearsOut,rnorYears:p.rnorYears||0,portugalIfici:p.portugalIfici||'no',compareIds:p.compareIds};
+}
+
+function recompute(){
+  if(!CURRENT_STORY)return;
+  const inc=parseFloat(document.getElementById('a-income').value)||0;
+  const nw=parseFloat(document.getElementById('a-networth').value)||0;
+  const age=parseFloat(document.getElementById('a-age').value)||CURRENT_INPUTS.age;
+  const kids=document.getElementById('a-kids').value;
+  const tier=parseInt(document.getElementById('a-tier').value)||3;
+  const eduY=Math.max(0,parseFloat(document.getElementById('a-eduyears').value)||0);
+  CURRENT_INPUTS.income=inc;
+  CURRENT_INPUTS.savings=nw;
+  CURRENT_INPUTS.age=age;
+  CURRENT_INPUTS.kids=kids;
+  CURRENT_INPUTS.desiredTier=tier-1;
+  CURRENT_INPUTS.eduYearsOut=eduY;
+  if(kids==='0'||eduY===0){CURRENT_INPUTS.eduKidsCount=0;CURRENT_INPUTS.eduTarget='na';}
+  else if(CURRENT_INPUTS.eduTarget==='na'&&kids!=='0'&&eduY>0){CURRENT_INPUTS.eduTarget='us_public_instate';CURRENT_INPUTS.eduKidsCount=parseInt(kids)||1;}
+  else {CURRENT_INPUTS.eduKidsCount=parseInt(kids)||CURRENT_INPUTS.eduKidsCount;}
+  compute();
+}
+
+function compute(){
+  const inp=CURRENT_INPUTS;
+  const gs=document.getElementById('guardrail-slot');
+  gs.innerHTML='';
+  const eduFund=eduMonthlySavings(inp);
+  const eduAnnual=eduFund*12;
+  const grossCheck=inp.work==='fire'?inp.savings*0.04:inp.income;
+  if(grossCheck>0&&eduAnnual/grossCheck>0.30){
+    const pct=Math.round((eduAnnual/grossCheck)*100);
+    gs.innerHTML='<div class="guardrail"><strong>Heads up.</strong> Funding college on this timeline would eat '+pct+'% of your gross income ('+fmtD(eduAnnual)+' per year toward a '+fmtD(EDU_PRESETS[inp.eduTarget]*inp.eduKidsCount)+' target). That is mathematically impossible on top of rent, tax, and life. Every location will show a deficit until you either stretch the years, lower the target, or raise income. Adjust the years-until-college below and recalculate.</div>';
+  }
+  const results={};
+  inp.compareIds.forEach(id=>{
+    if(!LOC[id])return;
+    const cost=getTierCost(id,inp.desiredTier,inp);
+    const gross=grossFor(inp,id);
+    const hy=headlineYearFor(inp);
+    const netMo=netMoAt(id,inp,hy,gross);
+    const saves=netMo-cost;
+    const savesRate=netMo>0?saves/netMo:-1;
+    const fire=fireYears(id,inp,cost,0.05);
+    const traj=netWorthTrajectory(id,inp,cost,0.05,10);
+    results[id]={cost,gross,netMo,saves,savesRate,fire,traj,end:traj[traj.length-1]};
+  });
+  const ranked=Object.keys(results).sort((a,b)=>results[b].end-results[a].end);
+  renderHeadline(ranked,results,inp);
+  renderTop3(ranked,results,inp);
+  renderChart(ranked,results,inp);
+}
+
+function renderHeadline(ranked,results,inp){
+  const el=document.getElementById('headline');
+  const a=ranked[0], b=ranked[1];
+  const rA=results[a], rB=results[b];
+  const nameA=LOC[a].name, nameB=LOC[b].name;
+  const diff=Math.abs(rA.end-rB.end);
+  const allDeficit=Object.values(results).every(r=>r.savesRate<0);
+  let text='';
+  let caveat='';
+  if(allDeficit){
+    text='Every option is a deficit at the lifestyle you picked. <em class="location-a">'+nameA+'</em> drains slowest.';
+    caveat='This usually means the tier you asked for is above what your income can support anywhere — not that you should not move.';
+  } else if(rA.end>rB.end*1.5){
+    text='After ten years, <em class="location-a">'+nameA+'</em> leaves you meaningfully ahead of anywhere else on this list.';
+    caveat='Roughly '+fmtK(diff)+' ahead of '+nameB+'. Money is only part of the picture; the cards below matter too.';
+  } else if(rA.end>rB.end*1.1){
+    text='<em class="location-a">'+nameA+'</em> comes out ahead, but the gap to <em>'+nameB+'</em> is small enough that non-money reasons should decide.';
+    caveat='About '+fmtK(diff)+' apart in ten years. That is inside the margin of "the schools, the flights, your mother."';
+  } else {
+    text='The top two, <em class="location-a">'+nameA+'</em> and <em>'+nameB+'</em>, are close enough that money should not decide.';
+    caveat='Under '+fmtK(diff)+' apart in ten years. Read the family and lifestyle notes.';
+  }
+  el.innerHTML=text+'<span class="caveat">'+caveat+'</span>';
+}
+
+function renderTop3(ranked,results,inp){
+  const el=document.getElementById('top3');
+  el.innerHTML=ranked.slice(0,3).map((id,i)=>{
+    const r=results[id];
+    const loc=LOC[id];
+    const rankLabels=['STRONGEST','SECOND','THIRD'];
+    const savesClass=r.saves>=0?'pos':'neg';
+    const fireText=r.fire===null?'50+ yrs':(r.fire===0?'today':r.fire+' yrs');
+    const verdict=verdictFor(id,r,inp);
+    return '<div class="rank">'+
+      '<div class="rank-num">'+rankLabels[i]+'</div>'+
+      '<div class="rank-loc"><span class="flag">'+loc.flag+'</span>'+loc.name+'</div>'+
+      '<div class="rank-sub">'+loc.sub+'</div>'+
+      '<div class="metric-row"><span class="metric-label">Take-home / mo</span><span class="metric-val '+(r.netMo>=0?'':'neg')+'">'+fmtK(r.netMo)+'</span></div>'+
+      '<div class="metric-row"><span class="metric-label">Life cost / mo</span><span class="metric-val">'+fmtK(r.cost)+'</span></div>'+
+      '<div class="metric-row"><span class="metric-label">Saves / mo</span><span class="metric-val '+savesClass+'">'+(r.saves>=0?'+':'')+fmtK(r.saves)+'</span></div>'+
+      '<div class="metric-row"><span class="metric-label">Time to FI</span><span class="metric-val">'+fireText+'</span></div>'+
+      '<div class="verdict">'+verdict+'</div>'+
+      '</div>';
+  }).join('');
+}
+
+function verdictFor(id,r,inp){
+  const isIndia=INDIA_IDS.includes(id);
+  const isFire=inp.work==='fire';
+  if(r.saves<0&&r.fire===null) return 'Sustainable only if you drop lifestyle or add income. The tier you asked for does not fit here on this income.';
+  if(isIndia&&isFire) return 'Portfolio holds the lifestyle. Family close. Healthcare access is the real question.';
+  if(isIndia&&!isFire&&r.savesRate>=0.3) return 'Foreign income against local costs — the strongest wealth position on this list. Tax on salary earned from India applies from day one.';
+  if(isIndia) return 'The daily life works. Family close. Confirm foreign salary keeps flowing after the move.';
+  if(id==='uae') return 'Zero income tax is real. Visa is tied to your job. Not a permanent home for most people.';
+  if(id==='portugal'&&inp.portugalIfici==='yes') return 'IFICI at 20 percent makes remote USD income efficient. Local senior jobs are thin.';
+  if(id==='portugal') return 'Nice lifestyle, low cost. Without confirmed IFICI, taxes on high income are heavy.';
+  if(id==='singapore') return 'Best-in-class safety and schools. Housing eats a third of gross. Citizenship path is not guaranteed.';
+  if(id==='uk') return 'NHS is a real savings on healthcare. Tax is heavy at your income. Strong Indian community.';
+  if(id==='canada') return 'Clear PR to citizenship path. Toronto and Vancouver housing now rivals US HCOL.';
+  if(id==='australia') return 'Balanced life, real safety net. Distance from India is the hidden tax.';
+  if(id.startsWith('usa_')) return 'Highest wealth ceiling. Visa is your only lever if you are on H-1B.';
+  return 'A viable option at this profile.';
+}
+
+/* chart */
+const CHART_COLORS=['#B2371F','#2A3A5C','#4A6A3E','#8C5A1E','#6E655A','#1F1B15'];
+function renderChart(ranked,results,inp){
+  const canvas=document.getElementById('chart');
+  const ctx=canvas.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const W=canvas.parentElement.offsetWidth;
+  const H=240;
+  canvas.width=W*dpr;
+  canvas.height=H*dpr;
+  canvas.style.width=W+'px';
+  canvas.style.height=H+'px';
+  ctx.scale(dpr,dpr);
+  ctx.clearRect(0,0,W,H);
+  const PAD={top:16,right:20,bottom:32,left:70};
+  const cw=W-PAD.left-PAD.right;
+  const ch=H-PAD.top-PAD.bottom;
+  const allVals=ranked.map(id=>results[id].traj).flat();
+  const maxV=Math.max(...allVals)*1.08;
+  const minV=Math.min(0,Math.min(...allVals));
+  const years=10;
+  const xPos=i=>PAD.left+(i/years)*cw;
+  const yPos=v=>PAD.top+(1-(v-minV)/((maxV-minV)||1))*ch;
+  ctx.strokeStyle='#DFD3B8';
+  ctx.lineWidth=1;
+  ctx.fillStyle='#6E655A';
+  ctx.font='11px "JetBrains Mono", monospace';
+  ctx.textAlign='right';
+  for(let g=0;g<=4;g++){
+    const y=PAD.top+(g/4)*ch;
+    ctx.beginPath();ctx.moveTo(PAD.left,y);ctx.lineTo(PAD.left+cw,y);ctx.stroke();
+    const v=maxV-(g/4)*(maxV-minV);
+    ctx.fillText(fmtAxis(v),PAD.left-8,y+4);
+  }
+  ctx.textAlign='center';
+  for(let y=0;y<=years;y+=2){
+    ctx.fillText('Yr '+y,xPos(y),H-PAD.bottom+18);
+  }
+  ranked.forEach((id,i)=>{
+    const data=results[id].traj;
+    const color=CHART_COLORS[i%CHART_COLORS.length];
+    ctx.strokeStyle=color;
+    ctx.lineWidth=2.5;
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    data.forEach((v,j)=>{const x=xPos(j),y=yPos(v);if(j===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);});
+    ctx.stroke();
+    const last=data[data.length-1];
+    ctx.fillStyle=color;
+    ctx.font='bold 11px "JetBrains Mono", monospace';
+    ctx.textAlign='left';
+    ctx.fillText(fmtAxis(last),xPos(years)+4,yPos(last)+4);
+  });
+  document.getElementById('legend').innerHTML=ranked.map((id,i)=>
+    '<span><span class="legend-dot" style="background:'+CHART_COLORS[i%CHART_COLORS.length]+'"></span>'+LOC[id].flag+' '+LOC[id].name+'</span>'
+  ).join('');
+}
+function fmtAxis(n){const a=Math.abs(n);const s=n<0?'-':'';if(a>=1e6)return s+'$'+(a/1e6).toFixed(a>=1e7?0:1)+'M';return s+'$'+Math.round(a/1000)+'k';}
+
+/* nav */
+function showResult(){document.getElementById('landing').style.display='none';document.getElementById('result').classList.add('active');window.scrollTo({top:0,behavior:'instant'});}
+function showLanding(){document.getElementById('landing').style.display='';document.getElementById('result').classList.remove('active');window.scrollTo({top:0,behavior:'instant'});}
+function openAdvanced(){window.location.href='advanced.html';}
+</script>
+</body>
+</html>
