@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Where should we live? — NRI Life Calculator v4.1</title>
+<title>Where should we live? — NRI Life Calculator v4.2</title>
 <meta name="description" content="Pick the story that sounds like yours. Get an honest look at what staying, moving to India, or trying a third country would actually mean for your family.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Where should we live? — a decision tool for NRIs">
 <meta property="og:description" content="Pick the story that sounds like yours. See what the numbers actually say.">
 <meta property="og:url" content="https://rupeestories-ctrl.github.io/nri-life-calculator/">
-<meta property="og:image" content="https://rupeestories-ctrl.github.io/nri-life-calculator/og.png?v=4-1">
+<meta property="og:image" content="https://rupeestories-ctrl.github.io/nri-life-calculator/og.png?v=4-2">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
@@ -119,6 +119,49 @@ canvas{width:100%!important;max-width:100%}
 .lifefit-row .cell-head{font-family:'Fraunces',serif;font-size:14px;font-weight:500;text-align:center}
 @media(max-width:640px){.lifefit-row{grid-template-columns:110px repeat(auto-fit,minmax(48px,1fr));padding:10px 12px;gap:8px;font-size:12px}.lifefit-row .cell-head{font-size:12px}}
 
+/* Life fit synthesis line */
+.lifefit-synth{margin-top:14px;padding:14px 18px;background:var(--paper-shade);border-radius:2px;font-size:14px;line-height:1.55;color:var(--ink-soft)}
+.lifefit-synth strong{color:var(--ink);font-weight:600}
+
+/* Sticky assumption bar (patch 3 modified) */
+.sticky-assumption{position:sticky;top:0;z-index:20;background:var(--paper);border-bottom:1px solid var(--rule);padding:10px 22px;font-size:13px;color:var(--muted);line-height:1.4;transition:opacity .2s ease}
+.sticky-assumption.hidden{opacity:0;pointer-events:none}
+.sticky-assumption strong{color:var(--ink);font-weight:600}
+.sticky-assumption .work-badge{display:inline-block;padding:1px 8px;background:var(--sindoor);color:var(--paper);border-radius:2px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.05em;text-transform:uppercase;margin-right:8px}
+@media(max-width:640px){.sticky-assumption{padding:8px 16px;font-size:12px}}
+
+/* Ranked-by-money framing strip (patch 1 modified) — above the cards */
+.ranked-framing{background:var(--paper-shade);padding:14px 20px;font-size:13px;color:var(--ink-soft);line-height:1.55;border:1px solid var(--rule);border-radius:2px;margin-bottom:16px}
+.ranked-framing strong{color:var(--ink);font-weight:600}
+
+/* Compare table (item 11, trimmed to 5 rows) */
+.compare-table{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:2px;font-size:13px;margin-bottom:32px;overflow-x:auto}
+.compare-row{background:var(--paper);display:grid;grid-template-columns:160px repeat(auto-fit,minmax(90px,1fr));gap:12px;padding:11px 16px;align-items:center;min-width:0}
+.compare-row.header{background:var(--paper-shade);font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+.compare-row .cell-lbl{font-weight:500;color:var(--ink-soft)}
+.compare-row .cell-num{font-family:'JetBrains Mono',monospace;text-align:right}
+.compare-row .cell-num.pos{color:var(--leaf)}
+.compare-row .cell-num.neg{color:var(--sindoor)}
+.compare-row .cell-head{font-family:'Fraunces',serif;font-size:14px;font-weight:500;text-align:right}
+@media(max-width:640px){.compare-row{grid-template-columns:110px repeat(auto-fit,minmax(70px,1fr));padding:9px 12px;font-size:12px}}
+
+/* Share button */
+.share-bar{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;margin-bottom:8px}
+.share-btn{padding:9px 18px;background:var(--paper);border:1px solid var(--rule);border-radius:2px;font-size:13px;color:var(--ink-soft);cursor:pointer;font-family:'Instrument Sans',sans-serif;display:inline-flex;align-items:center;gap:8px}
+.share-btn:hover{background:var(--paper-shade);color:var(--ink);border-color:var(--ink)}
+.share-btn.copied{background:var(--leaf);color:var(--paper);border-color:var(--leaf)}
+
+/* Mobile — patch 9: compact vignette cards + move fallback up */
+@media(max-width:580px){
+  .vignettes{grid-template-columns:1fr}
+  .card{min-height:auto;padding:18px 18px 16px;gap:10px}
+  .card-body{font-size:14px;line-height:1.5}
+  .card-signal{display:none}
+  .card-num{font-size:10px}
+  .card-title{font-size:18px}
+  .card-q{font-size:14px}
+}
+
 .guardrail{background:var(--amber-soft);border:1px solid var(--amber);border-radius:2px;padding:16px 20px;margin-bottom:24px;font-size:14px;line-height:1.55}
 .guardrail strong{color:var(--amber);font-weight:600}
 
@@ -183,6 +226,7 @@ footer a:hover{color:var(--ink)}
 </div>
 
 <div id="result" class="result-wrap">
+  <div class="sticky-assumption hidden" id="sticky-assumption"></div>
   <a href="#" class="back-link" onclick="event.preventDefault();showLanding()">← back to the stories</a>
 
   <div class="your-story">
@@ -200,12 +244,23 @@ footer a:hover{color:var(--ink)}
     <div class="headline" id="headline"></div>
   </section>
 
+  <div class="ranked-framing">
+    <strong>The three cards below are ordered by projected net worth after ten years — not by which is best for your family.</strong> Family closeness, healthcare, schools, air quality, and visa stability differ sharply between these locations and are shown right after, under "What money does not capture."
+  </div>
+
   <div class="top3" id="top3"></div>
 
   <div class="chart-block" id="lifefit-block">
     <h3>What money does not capture</h3>
     <p class="sub">Five things that will decide the move regardless of what the wealth chart says. Scored per location on a rough 1&ndash;10 planning scale.</p>
     <div id="lifefit-table"></div>
+    <div class="lifefit-synth" id="lifefit-synth"></div>
+  </div>
+
+  <div class="chart-block" id="compare-block">
+    <h3>Side by side</h3>
+    <p class="sub">Same five numbers across every location you would be comparing, at this month's take-home.</p>
+    <div id="compare-table"></div>
   </div>
 
   <div class="chart-block">
@@ -213,6 +268,11 @@ footer a:hover{color:var(--ink)}
     <p class="sub">Projected net worth in today's dollars. Assumes the tier of life you would want, less what you would actually spend, invested at 5 percent real return. Deficits drain savings.</p>
     <canvas id="chart" height="240" role="img" aria-label="Net worth trajectory by location"></canvas>
     <div class="legend" id="legend"></div>
+    <div class="share-bar">
+      <button class="share-btn" id="share-link-btn" onclick="copyShareLink()">📎 Copy link with your setup</button>
+      <button class="share-btn" onclick="copyShareText()">📋 Copy the short summary</button>
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5">The link contains your inputs base64-encoded in the URL. Anyone who opens it will see your numbers. Share deliberately.</p>
   </div>
 
   <details class="adjust" id="adjust-panel">
@@ -371,10 +431,10 @@ footer a:hover{color:var(--ink)}
     <strong>Planning estimate, not advice.</strong> The tool uses simplified effective tax rates and today's dollars. Your city, employer, school, insurance, account type, treaty position, and residence history all move these numbers. Talk to the right licensed advisor before you decide anything.
   </p>
   <p>
-    Data version July 22, 2026 <span class="dot">·</span>
+    Data version July 22, 2026 <span class="dot">·</span> Engine v3.3.1 <span class="dot">·</span>
     <a href="#" onclick="event.preventDefault();openAllControls()">Tune every input yourself</a> <span class="dot">·</span>
     <span class="built">Built for r/RupeeStories.</span>
-    <span class="version"> v4.1</span>
+    <span class="version"> v4.2</span>
   </p>
 </footer>
 
@@ -569,6 +629,7 @@ function pickStory(n){
   document.getElementById('a-rnor').value=String(v.inputs.rnorYears||0);
   document.getElementById('a-schooltuition').value=v.inputs.currentSchoolTuition||0;
   document.getElementById('a-schoolcontinues').value=v.inputs.currentSchoolContinues||'no';
+  syncConditionalFields();
   compute();
   showResult();
 }
@@ -657,6 +718,7 @@ function recompute(){
   }
   // update visible assumption line to reflect any work mode change
   document.getElementById('story-assumption').innerHTML=assumptionLine(CURRENT_INPUTS);
+  syncConditionalFields();
   compute();
 }
 
@@ -677,9 +739,8 @@ function compute(){
     const traj=netWorthTrajectory(id,inp,cost,0.05,10);
     results[id]={cost,gross,netMo,saves,savesRate,fire,traj,end:traj[traj.length-1]};
   });
-  // Show a soft advisory when the education sinking fund is eating a very large
-  // slice of gross AND at least one location is showing a deficit. Do not use
-  // absolute language — sometimes low-tax + low-cost locations survive it.
+  // Guardrails — layered, low-drama, only when relevant
+  const warnings=[];
   const eduFund=eduMonthlySavings(inp);
   const eduAnnual=eduFund*12;
   const grossCheck=inp.work==='fire'?inp.savings*0.04:inp.income;
@@ -689,13 +750,31 @@ function compute(){
     const suffix=anyLocationSaves
       ? 'Some locations still leave room, but expect tight margins everywhere.'
       : 'On this timeline, every location shows a deficit. Stretching the years, lowering the target, or raising income will change the picture.';
-    gs.innerHTML='<div class="guardrail"><strong>Heads up.</strong> Your education target uses about '+pct+'% of gross income ('+fmtD(eduAnnual)+' per year toward a '+fmtD(EDU_PRESETS[inp.eduTarget]*inp.eduKidsCount)+' target). '+suffix+' You can adjust the years-until-college or the college target below.</div>';
+    warnings.push('<strong>Education target uses ~'+pct+'% of gross</strong> ('+fmtD(eduAnnual)+'/yr toward a '+fmtD(EDU_PRESETS[inp.eduTarget]*inp.eduKidsCount)+' goal). '+suffix);
+  }
+  // Tuition guardrail — private/international schooling >20% of gross
+  const currentTuitionAnnual=(inp.currentSchoolTuition||0)*(parseInt(inp.kids)||0);
+  if(grossCheck>0 && currentTuitionAnnual/grossCheck>0.20){
+    const pct=Math.round((currentTuitionAnnual/grossCheck)*100);
+    warnings.push('<strong>Current tuition uses ~'+pct+'% of gross</strong> ('+fmtD(currentTuitionAnnual)+'/yr). If those schools continue after moving, this is a permanent obligation everywhere. If they do not, this is the strongest reason to move.');
+  }
+  // Remittance guardrail — >15% of gross
+  const remAnnual=(inp.remittance||0)*12;
+  if(grossCheck>0 && remAnnual/grossCheck>0.15){
+    const pct=Math.round((remAnnual/grossCheck)*100);
+    warnings.push('<strong>Remittance uses ~'+pct+'% of gross</strong> ('+fmtD(remAnnual)+'/yr). This is high enough that lowering it materially changes every location\u2019s ranking.');
+  }
+  if(warnings.length){
+    gs.innerHTML='<div class="guardrail"><strong>Heads up.</strong> '+warnings.join('<br><br>')+'</div>';
   }
   const ranked=Object.keys(results).sort((a,b)=>results[b].end-results[a].end);
   renderHeadline(ranked,results,inp);
   renderTop3(ranked,results,inp);
   renderLifeFit(ranked,inp);
+  renderCompareTable(ranked,results,inp);
   renderChart(ranked,results,inp);
+  renderStickyBar(inp);
+  updateHash(inp);
 }
 
 function scoreClass(n){return n>=8?'hi':n>=5?'mid':'lo';}
@@ -730,7 +809,67 @@ function renderLifeFit(ranked,inp){
   });
   html+='</div>';
   document.getElementById('lifefit-table').innerHTML=html;
+  // Synthesis line: name the leader on each dimension
+  const leaders={};
+  dims.forEach(d=>{
+    let bestId=top[0],bestV=-1;
+    top.forEach(id=>{const v=d.pick(id);if(v>bestV){bestV=v;bestId=id;}});
+    leaders[d.label]=LOC[bestId].name;
+  });
+  // Group dimensions by leader location
+  const byLoc={};
+  Object.entries(leaders).forEach(([dim,loc])=>{
+    (byLoc[loc]=byLoc[loc]||[]).push(dim.toLowerCase());
+  });
+  const parts=Object.entries(byLoc).sort((a,b)=>b[1].length-a[1].length).map(([loc,dims])=>{
+    return '<strong>'+loc+'</strong> leads on '+dims.join(', ');
+  });
+  document.getElementById('lifefit-synth').innerHTML=parts.join('. ')+'.';
 }
+
+function renderCompareTable(ranked,results,inp){
+  // 5 rows, all selected locations across.
+  const ids=ranked;
+  const rows=[
+    {label:'Income / mo (after tax)',pick:id=>results[id].netMo+(inp.remittance||0)+tripCostFor(id,inp)/12+(inp.debtMonthly||0)+(currentTuitionMonthly(id,inp))+(eduMonthlySavings(inp)*(1<= (inp.eduYearsOut||10)?1:0)),neg:v=>v<0},
+    {label:'Lifestyle cost / mo',pick:id=>results[id].cost,neg:_=>false},
+    {label:'Saves / mo',pick:id=>results[id].saves,neg:v=>v<0,pos:v=>v>0},
+    {label:'Wealth at year 10',pick:id=>results[id].end,neg:_=>false},
+    {label:'FIRE timeline',pick:id=>{const f=results[id].fire;if(f===null)return '50+ yrs';if(f===0)return 'now';return f+' yrs';},raw:true},
+  ];
+  let html='<div class="compare-table">';
+  html+='<div class="compare-row header"><div class="cell-lbl">Measure</div>'+ids.map(id=>'<div class="cell-head">'+LOC[id].flag+' '+LOC[id].name.replace(/^.+· /,'')+'</div>').join('')+'</div>';
+  rows.forEach(r=>{
+    html+='<div class="compare-row"><div class="cell-lbl">'+r.label+'</div>';
+    ids.forEach(id=>{
+      const v=r.pick(id);
+      if(r.raw){html+='<div class="cell-num">'+v+'</div>';}
+      else {
+        const cls=r.pos&&r.pos(v)?'pos':(r.neg&&r.neg(v)?'neg':'');
+        html+='<div class="cell-num '+cls+'">'+fmtK(v)+'</div>';
+      }
+    });
+    html+='</div>';
+  });
+  html+='</div>';
+  document.getElementById('compare-table').innerHTML=html;
+}
+
+function renderStickyBar(inp){
+  const bar=document.getElementById('sticky-assumption');
+  if(!bar)return;
+  const workLabel={same:'SAME SALARY',local:'LOCAL SALARY',remote:'REMOTE INCOME',fire:'PORTFOLIO DRAW'}[inp.work]||'';
+  const workMsg={
+    same:'income continues at current level everywhere',
+    local:'income scales to local market per country',
+    remote:'income continues wherever you live',
+    fire:'no salary — 4% portfolio draw'
+  }[inp.work]||'';
+  bar.innerHTML='<span class="work-badge">'+workLabel+'</span>Assuming '+workMsg+'. Change in <em>Adjust</em> if wrong.';
+  bar.classList.remove('hidden');
+}
+
+
 
 function renderHeadline(ranked,results,inp){
   const el=document.getElementById('headline');
@@ -782,10 +921,7 @@ function renderTop3(ranked,results,inp){
       '<div class="metric-row"><span class="metric-label">Time to FI</span><span class="metric-val">'+fireText+'</span></div>'+
       '<div class="verdict">'+verdict+'</div>'+
       '</div>';
-  }).join('')+
-  '<div style="grid-column:1/-1;background:var(--paper-shade);padding:14px 20px;font-size:13px;color:var(--muted);line-height:1.55">'+
-  '<strong style="color:var(--ink);font-weight:600">Ranked by money only.</strong> These three are ordered by projected net worth after ten years — not by which is "best for your family." Family closeness, healthcare, schools, air quality and visa stability are shown separately below and vary sharply between these locations. Read the story-specific verdict inside each card.'+
-  '</div>';
+  }).join('');
 }
 
 function verdictFor(id,r,inp){
@@ -878,6 +1014,138 @@ function openAllControls(){
   if(panel){panel.open=true;panel.scrollIntoView({behavior:'smooth',block:'start'});}
 }
 function openAdvanced(){openAllControls();}
+
+/* ═════════════════ PERSISTENCE ═════════════════ */
+// Serialize inputs to a compact hash. Base64 the JSON representation.
+// The hash also carries story number so the story panel restores.
+const HASH_FIELDS=['income','savings','age','retireAge','kids','desiredTier','work','currentLoc','visa','eduTarget','eduKidsCount','eduYearsOut','remittance','debtMonthly','indiaTripBudget','rnorYears','portugalIfici','currentSchoolTuition','currentSchoolContinues','parentsLoc'];
+function encodeInputs(storyN,inp){
+  const payload={s:storyN};
+  HASH_FIELDS.forEach(f=>{
+    let v=inp[f];
+    if(v===undefined||v===null||v==='')return;
+    // compact numeric encoding — keep as-is; base64 handles size
+    payload[f]=v;
+  });
+  try{
+    return 'setup='+btoa(JSON.stringify(payload));
+  }catch(e){return '';}
+}
+function decodeInputs(hash){
+  if(!hash||!hash.startsWith('#setup='))return null;
+  try{
+    const raw=atob(hash.slice(7));
+    return JSON.parse(raw);
+  }catch(e){return null;}
+}
+function updateHash(inp){
+  if(!CURRENT_STORY)return;
+  const h=encodeInputs(CURRENT_STORY.n,inp);
+  if(h && window.history && window.history.replaceState){
+    window.history.replaceState(null,'','#'+h);
+  }
+}
+function loadFromHash(){
+  const decoded=decodeInputs(location.hash);
+  if(!decoded||!decoded.s)return false;
+  const v=VIGNETTES.find(x=>x.n===decoded.s);
+  if(!v)return false;
+  // Start with story defaults, then override with hash fields
+  CURRENT_STORY=v;
+  CURRENT_INPUTS=buildInputs(v.inputs);
+  HASH_FIELDS.forEach(f=>{if(f in decoded)CURRENT_INPUTS[f]=decoded[f];});
+  // populate visible story text
+  document.getElementById('story-title').textContent=v.title;
+  document.getElementById('story-body').textContent=v.body;
+  document.getElementById('story-q').textContent=v.q;
+  document.getElementById('story-assumption').innerHTML=assumptionLine(CURRENT_INPUTS);
+  // populate expanded adjust panel from CURRENT_INPUTS (already merged)
+  document.getElementById('a-income').value=CURRENT_INPUTS.income;
+  document.getElementById('a-networth').value=CURRENT_INPUTS.savings;
+  document.getElementById('a-age').value=CURRENT_INPUTS.age;
+  document.getElementById('a-retireage').value=CURRENT_INPUTS.retireAge;
+  document.getElementById('a-kids').value=CURRENT_INPUTS.kids;
+  document.getElementById('a-tier').value=CURRENT_INPUTS.desiredTier+1;
+  document.getElementById('a-eduyears').value=CURRENT_INPUTS.eduYearsOut;
+  document.getElementById('a-work').value=CURRENT_INPUTS.work;
+  document.getElementById('a-edutarget').value=CURRENT_INPUTS.eduTarget||'na';
+  document.getElementById('a-remittance').value=CURRENT_INPUTS.remittance||0;
+  document.getElementById('a-debt').value=CURRENT_INPUTS.debtMonthly||0;
+  document.getElementById('a-tripbudget').value=CURRENT_INPUTS.indiaTripBudget||0;
+  document.getElementById('a-currentloc').value=CURRENT_INPUTS.currentLoc;
+  document.getElementById('a-visa').value=CURRENT_INPUTS.visa;
+  document.getElementById('a-portugalifici').value=CURRENT_INPUTS.portugalIfici||'no';
+  document.getElementById('a-rnor').value=String(CURRENT_INPUTS.rnorYears||0);
+  document.getElementById('a-schooltuition').value=CURRENT_INPUTS.currentSchoolTuition||0;
+  document.getElementById('a-schoolcontinues').value=CURRENT_INPUTS.currentSchoolContinues||'no';
+  syncConditionalFields();
+  compute();
+  showResult();
+  return true;
+}
+
+/* ═════════════════ CONDITIONAL FIELDS (item 10) ═════════════════ */
+function syncConditionalFields(){
+  if(!CURRENT_INPUTS)return;
+  const ids=CURRENT_INPUTS.compareIds||[];
+  // Show Portugal IFICI only if Portugal is in the comparison set
+  const portRow=document.getElementById('a-portugalifici').closest('.field');
+  if(portRow){portRow.style.display=ids.includes('portugal')?'':'none';}
+  // Show RNOR only if FIRE mode AND any India location is in the set
+  const rnorRow=document.getElementById('a-rnor').closest('.field');
+  const showRnor=CURRENT_INPUTS.work==='fire' && ids.some(id=>INDIA_IDS.includes(id));
+  if(rnorRow){rnorRow.style.display=showRnor?'':'none';}
+  // Show current-tuition-continues only if a tuition value is set
+  const tContRow=document.getElementById('a-schoolcontinues').closest('.field');
+  if(tContRow){tContRow.style.display=(CURRENT_INPUTS.currentSchoolTuition>0)?'':'none';}
+}
+
+/* ═════════════════ SHARE ═════════════════ */
+function copyShareLink(){
+  if(!CURRENT_STORY)return;
+  const h=encodeInputs(CURRENT_STORY.n,CURRENT_INPUTS);
+  const url=location.origin+location.pathname+'#'+h;
+  navigator.clipboard.writeText(url).then(()=>{
+    const btn=document.getElementById('share-link-btn');
+    const orig=btn.innerHTML;
+    btn.innerHTML='✓ Copied — paste anywhere';
+    btn.classList.add('copied');
+    setTimeout(()=>{btn.innerHTML=orig;btn.classList.remove('copied');},2500);
+  }).catch(()=>{alert('Copy failed. URL: '+url);});
+}
+function copyShareText(){
+  if(!CURRENT_STORY)return;
+  const inp=CURRENT_INPUTS;
+  const results={};
+  inp.compareIds.forEach(id=>{
+    if(!LOC[id])return;
+    const cost=getTierCost(id,inp.desiredTier,inp);
+    const gross=grossFor(inp,id);
+    const netMo=netMoAt(id,inp,headlineYearFor(inp),gross);
+    const traj=netWorthTrajectory(id,inp,cost,0.05,10);
+    results[id]={saves:netMo-cost,end:traj[traj.length-1]};
+  });
+  const ranked=Object.keys(results).sort((a,b)=>results[b].end-results[a].end);
+  const top3=ranked.slice(0,3).map((id,i)=>{
+    const r=results[id];
+    return (i+1)+'. '+LOC[id].name+' — '+fmtK(r.end)+' at 10y, '+(r.saves>=0?'+':'')+fmtK(r.saves)+'/mo saves';
+  }).join('\n');
+  const url=location.origin+location.pathname+'#'+encodeInputs(CURRENT_STORY.n,inp);
+  const text='Where should we live? — my scenario\n\n"'+CURRENT_STORY.title+'"\n\nRanked by 10-year projected wealth:\n'+top3+'\n\nAssuming: '+({same:'same salary continues',local:'local market salary',remote:'remote income continues',fire:'4% portfolio draw'}[inp.work])+'\n\nSetup: '+url;
+  navigator.clipboard.writeText(text).then(()=>{
+    alert('Summary copied. Paste it wherever you like.');
+  }).catch(()=>{alert('Copy failed. Text:\n\n'+text);});
+}
+
+/* ═════════════════ INIT ═════════════════ */
+// On page load, if there's a valid #setup hash, restore that scenario
+window.addEventListener('DOMContentLoaded',()=>{
+  if(location.hash && location.hash.startsWith('#setup=')){
+    if(loadFromHash())return;
+  }
+  // else: normal flow, landing view stays visible
+});
+
 </script>
 </body>
 </html>
