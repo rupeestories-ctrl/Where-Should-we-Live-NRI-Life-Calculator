@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Where should we live? — NRI Life Calculator v4.0</title>
+<title>Where should we live? — NRI Life Calculator v4.1</title>
 <meta name="description" content="Pick the story that sounds like yours. Get an honest look at what staying, moving to India, or trying a third country would actually mean for your family.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Where should we live? — a decision tool for NRIs">
 <meta property="og:description" content="Pick the story that sounds like yours. See what the numbers actually say.">
 <meta property="og:url" content="https://rupeestories-ctrl.github.io/nri-life-calculator/">
-<meta property="og:image" content="https://rupeestories-ctrl.github.io/nri-life-calculator/og.png">
+<meta property="og:image" content="https://rupeestories-ctrl.github.io/nri-life-calculator/og.png?v=4-1">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
@@ -108,6 +108,17 @@ canvas{width:100%!important;max-width:100%}
 .legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;font-size:12px;color:var(--muted)}
 .legend-dot{display:inline-block;width:12px;height:3px;vertical-align:middle;margin-right:6px}
 
+.lifefit-table{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:2px;font-size:13px}
+.lifefit-row{background:var(--paper);display:grid;grid-template-columns:180px repeat(auto-fit,minmax(70px,1fr));gap:12px;padding:12px 16px;align-items:center}
+.lifefit-row.header{background:var(--paper-shade);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.lifefit-row .cell-label{font-weight:500;color:var(--ink-soft)}
+.lifefit-row .cell-score{font-family:'JetBrains Mono',monospace;font-weight:500;text-align:center}
+.lifefit-row .cell-score.hi{color:var(--leaf)}
+.lifefit-row .cell-score.mid{color:var(--amber)}
+.lifefit-row .cell-score.lo{color:var(--sindoor)}
+.lifefit-row .cell-head{font-family:'Fraunces',serif;font-size:14px;font-weight:500;text-align:center}
+@media(max-width:640px){.lifefit-row{grid-template-columns:110px repeat(auto-fit,minmax(48px,1fr));padding:10px 12px;gap:8px;font-size:12px}.lifefit-row .cell-head{font-size:12px}}
+
 .guardrail{background:var(--amber-soft);border:1px solid var(--amber);border-radius:2px;padding:16px 20px;margin-bottom:24px;font-size:14px;line-height:1.55}
 .guardrail strong{color:var(--amber);font-weight:600}
 
@@ -150,7 +161,7 @@ footer a:hover{color:var(--ink)}
   <div class="brand">Where should we live<span class="amp">?</span></div>
   <nav>
     <a href="#stories">Stories</a>
-    <a href="#" onclick="event.preventDefault();openAdvanced()">Full form</a>
+    <a href="#" onclick="event.preventDefault();openAllControls()">Tune everything</a>
     <a href="https://rupeestories.substack.com" target="_blank" rel="noopener">RupeeStories</a>
   </nav>
 </header>
@@ -179,6 +190,7 @@ footer a:hover{color:var(--ink)}
     <h2 id="story-title"></h2>
     <p id="story-body"></p>
     <p class="q" id="story-q"></p>
+    <p id="story-assumption" style="font-size:13px;color:var(--muted);margin-top:14px;padding-top:12px;border-top:1px solid var(--rule-soft);line-height:1.5"></p>
   </div>
 
   <div id="guardrail-slot"></div>
@@ -190,6 +202,12 @@ footer a:hover{color:var(--ink)}
 
   <div class="top3" id="top3"></div>
 
+  <div class="chart-block" id="lifefit-block">
+    <h3>What money does not capture</h3>
+    <p class="sub">Five things that will decide the move regardless of what the wealth chart says. Scored per location on a rough 1&ndash;10 planning scale.</p>
+    <div id="lifefit-table"></div>
+  </div>
+
   <div class="chart-block">
     <h3>Where your money goes over the next decade</h3>
     <p class="sub">Projected net worth in today's dollars. Assumes the tier of life you would want, less what you would actually spend, invested at 5 percent real return. Deficits drain savings.</p>
@@ -197,16 +215,31 @@ footer a:hover{color:var(--ink)}
     <div class="legend" id="legend"></div>
   </div>
 
-  <details class="adjust">
+  <details class="adjust" id="adjust-panel">
     <summary>
       <h3>Something off? Adjust here.</h3>
       <span class="toggle"></span>
     </summary>
+
+    <p style="font-size:13px;color:var(--muted);margin:4px 0 20px;line-height:1.5">
+      The story you picked already filled these in. Change only what does not match your situation and press <em>Recalculate</em>. Every field affects the numbers above.
+    </p>
+
     <div class="adjust-body">
       <div class="field">
         <label for="a-income">Household income (USD/year)</label>
         <input type="number" id="a-income" inputmode="decimal">
         <div class="hint">Gross, before tax. Both spouses combined.</div>
+      </div>
+      <div class="field">
+        <label for="a-work">What happens to income after moving</label>
+        <select id="a-work">
+          <option value="same">Same salary continues (only if employer confirmed)</option>
+          <option value="local">Local market salary (auto-scaled per destination)</option>
+          <option value="remote">Remote foreign income (same pay, wherever you live)</option>
+          <option value="fire">Not working — 4% portfolio draw</option>
+        </select>
+        <div class="hint">This assumption drives more than any other number. Do not choose "same" unless there is a real offer.</div>
       </div>
       <div class="field">
         <label for="a-networth">Net worth (USD)</label>
@@ -215,7 +248,12 @@ footer a:hover{color:var(--ink)}
       </div>
       <div class="field">
         <label for="a-age">Your age</label>
-        <input type="number" id="a-age" inputmode="decimal">
+        <input type="number" id="a-age" inputmode="decimal" min="18" max="80">
+      </div>
+      <div class="field">
+        <label for="a-retireage">Target retirement age</label>
+        <input type="number" id="a-retireage" inputmode="decimal" min="30" max="85">
+        <div class="hint">Used to check whether you reach FI in time.</div>
       </div>
       <div class="field">
         <label for="a-kids">Kids at home</label>
@@ -236,9 +274,92 @@ footer a:hover{color:var(--ink)}
         </select>
       </div>
       <div class="field">
+        <label for="a-schooltuition">Current school tuition (USD/year, per child)</label>
+        <input type="number" id="a-schooltuition" inputmode="decimal" min="0">
+        <div class="hint">Only if paying now. Boarding school, private US, or international school. Ignored if you would stop paying it after moving.</div>
+      </div>
+      <div class="field">
+        <label for="a-schoolcontinues">Would this tuition continue after moving?</label>
+        <select id="a-schoolcontinues">
+          <option value="no">No — kids would switch schools</option>
+          <option value="yes">Yes — same or comparable school everywhere</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="a-edutarget">Future college target (per child)</label>
+        <select id="a-edutarget">
+          <option value="na">Not funding college separately</option>
+          <option value="local_public">Local public university (~$15k total)</option>
+          <option value="india_private_engg_med">India private engineering / medical (~$60k)</option>
+          <option value="uk_australia">UK / Australia international (~$160k)</option>
+          <option value="us_public_instate">US public, in-state (~$100k)</option>
+          <option value="us_public_outofstate">US public, out-of-state (~$220k)</option>
+          <option value="us_private">US private (~$320k)</option>
+        </select>
+      </div>
+      <div class="field">
         <label for="a-eduyears">Years until oldest starts college</label>
         <input type="number" id="a-eduyears" inputmode="decimal" min="0" max="20">
-        <div class="hint">Only matters if you plan to fund college. Set to 0 to skip.</div>
+        <div class="hint">The tool builds a monthly sinking fund. Very short timelines create impossible contributions.</div>
+      </div>
+      <div class="field">
+        <label for="a-remittance">Monthly India remittance (USD)</label>
+        <input type="number" id="a-remittance" inputmode="decimal" min="0">
+      </div>
+      <div class="field">
+        <label for="a-debt">Existing monthly debt payment (USD)</label>
+        <input type="number" id="a-debt" inputmode="decimal" min="0">
+        <div class="hint">Student loans, car loans, EMI — anything that follows you regardless of where you live.</div>
+      </div>
+      <div class="field">
+        <label for="a-tripbudget">Annual India trip budget (USD, from current location)</label>
+        <input type="number" id="a-tripbudget" inputmode="decimal" min="0">
+      </div>
+      <div class="field">
+        <label for="a-currentloc">Where you are now</label>
+        <select id="a-currentloc">
+          <option value="usa_hcol">USA — HCOL (SF/NYC/Seattle)</option>
+          <option value="usa_mcol">USA — MCOL (Austin/Denver/Chicago)</option>
+          <option value="uk">United Kingdom</option>
+          <option value="uae">UAE (Dubai / Abu Dhabi)</option>
+          <option value="singapore">Singapore</option>
+          <option value="australia">Australia</option>
+          <option value="portugal">Portugal</option>
+          <option value="canada">Canada</option>
+          <option value="india_metro">India — Metro</option>
+          <option value="india_t2">India — Tier 2</option>
+          <option value="india_small">India — Small city</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="a-visa">Immigration status</label>
+        <select id="a-visa">
+          <option value="citizen">US / local citizen</option>
+          <option value="gc">Green card</option>
+          <option value="h1b">H-1B (employer sponsored)</option>
+          <option value="gc_pending">GC pending</option>
+          <option value="l1">L-1 / L-2</option>
+          <option value="pr_other">PR in current country</option>
+          <option value="oci">OCI / Indian citizen</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="a-portugalifici">Portugal IFICI confirmed with an advisor?</label>
+        <select id="a-portugalifici">
+          <option value="no">No or unsure — use standard rate</option>
+          <option value="yes">Yes, confirmed — apply reduced planning rate</option>
+        </select>
+        <div class="hint">Only affects Portugal calculations. Not automatic for every remote worker.</div>
+      </div>
+      <div class="field">
+        <label for="a-rnor">RNOR years to assume (if moving to India in FIRE)</label>
+        <select id="a-rnor">
+          <option value="0">Do not apply RNOR relief</option>
+          <option value="1">1 year</option>
+          <option value="2">2 years</option>
+          <option value="3">3 years</option>
+        </select>
+        <div class="hint">Applies only to the simplified FIRE withdrawal model.</div>
       </div>
     </div>
     <button class="recompute" onclick="recompute()">Recalculate</button>
@@ -251,9 +372,9 @@ footer a:hover{color:var(--ink)}
   </p>
   <p>
     Data version July 22, 2026 <span class="dot">·</span>
-    <a href="#" onclick="event.preventDefault();openAdvanced()">Open the full form</a> <span class="dot">·</span>
+    <a href="#" onclick="event.preventDefault();openAllControls()">Tune every input yourself</a> <span class="dot">·</span>
     <span class="built">Built for r/RupeeStories.</span>
-    <span class="version"> v4.0</span>
+    <span class="version"> v4.1</span>
   </p>
 </footer>
 
@@ -353,8 +474,21 @@ function effectiveRate(income,bands){if(!income||income<=0)return 0;for(let i=0;
 function grossFor(inp,locId){if(inp.work==='fire')return inp.savings*0.04;const base=Math.max(0,inp.income);if(inp.work==='local'&&locId!==inp.currentLoc){const d=LOCAL_INCOME_MULT[locId]??0.5;const c=LOCAL_INCOME_MULT[inp.currentLoc]??1;return base*d/c;}return base;}
 function eduMonthlySavings(inp){const perChild=EDU_PRESETS[inp.eduTarget]||0;const kids=inp.eduKidsCount||0;if(perChild<=0||kids<=0)return 0;const totalNeeded=perChild*kids;const years=Math.max(0.5,inp.eduYearsOut??10);const months=years*12;const rMo=(inp.invReturn||0.05)/12;if(rMo<=0)return totalNeeded/months;const factor=(Math.pow(1+rMo,months)-1)/rMo;return totalNeeded/factor;}
 function tripCostFor(locId,inp){const cur=LOC[inp.currentLoc]?LOC[inp.currentLoc].indiaTripCost:4200;const scale=cur>0?(inp.indiaTripBudget||0)/cur:1;return Math.round((LOC[locId].indiaTripCost||0)*scale);}
-function monthlyExtras(locId,inp,year){year=year||1;const trips=tripCostFor(locId,inp);const eduYears=Math.max(1,inp.eduYearsOut??10);const eduContrib=year<=eduYears?eduMonthlySavings(inp):0;return Math.max(0,inp.remittance||0)+trips/12+Math.max(0,inp.debtMonthly||0)+eduContrib;}
-function permanentMonthlyExtras(locId,inp){return (inp.remittance||0)+tripCostFor(locId,inp)/12+(inp.debtMonthly||0);}
+function currentTuitionMonthly(locId,inp){
+  // Current schooling costs: if the family is paying private/boarding now, this
+  // may continue in the same form (international school abroad) or drop away
+  // (kids switch to local schools). "no" = drops. "yes" = the same annualized
+  // cost is carried into the new location.
+  if(!inp.currentSchoolTuition || inp.currentSchoolTuition<=0)return 0;
+  const kids=Math.max(0,parseInt(inp.kids)||0);
+  if(kids===0)return 0;
+  if(inp.currentSchoolContinues==='yes')return (inp.currentSchoolTuition*kids)/12;
+  // "no" — pay in current location only, disappears everywhere else
+  if(locId===inp.currentLoc)return (inp.currentSchoolTuition*kids)/12;
+  return 0;
+}
+function monthlyExtras(locId,inp,year){year=year||1;const trips=tripCostFor(locId,inp);const eduYears=Math.max(1,inp.eduYearsOut??10);const eduContrib=year<=eduYears?eduMonthlySavings(inp):0;const tuition=currentTuitionMonthly(locId,inp);return Math.max(0,inp.remittance||0)+trips/12+Math.max(0,inp.debtMonthly||0)+eduContrib+tuition;}
+function permanentMonthlyExtras(locId,inp){return (inp.remittance||0)+tripCostFor(locId,inp)/12+(inp.debtMonthly||0)+currentTuitionMonthly(locId,inp);}
 function headlineYearFor(inp){return inp.work==='fire'?clamp(parseInt(inp.rnorYears||0),0,3)+1:1;}
 function taxRateFor(locId,inp,year,gross){const loc=LOC[locId];const isFire=inp.work==='fire';let rate=effectiveRate(gross,loc.taxBands);if(isFire){rate*=0.60;const rn=clamp(parseInt(inp.rnorYears||0),0,3);if(INDIA_IDS.includes(locId)&&loc.rnorBenefit&&year<=rn)rate=0;}else if(locId==='portugal'&&inp.work==='remote'&&loc.ificiEligible&&inp.portugalIfici==='yes'&&year<=10){rate=Math.min(rate,0.28);}return clamp(rate,0,0.65);}
 function netMoAt(locId,inp,year,gross){const rate=taxRateFor(locId,inp,year,gross);return (Math.max(0,gross)*(1-rate))/12-monthlyExtras(locId,inp,year);}
@@ -367,15 +501,15 @@ function netWorthTrajectory(locId,inp,cost,rtn,years){const arr=[inp.savings];le
 const VIGNETTES=[
   {n:1,title:"The first year math",body:"I finished school last year. My first offer was 145. My friends in Bangalore made half that but they own a car. My rent is 2,600 and my parents are wondering when I will visit.",q:"Is this really the deal I signed up for?",chips:["H-1B","single","early career"],inputs:{income:145000,networth:20000,age:26,retireAge:55,kids:0,tier:2,work:'local',currentLoc:'usa_mcol',visa:'h1b',eduTarget:'na',eduKidsCount:0,eduYearsOut:0,remittance:200,debtMonthly:400,indiaTripBudget:3500,parentsLoc:'india',compareIds:['usa_mcol','india_metro','india_t2','uae','singapore']}},
   {n:2,title:"Eleven years in the queue",body:"I have been on H-1B for eleven years. Both kids were born here. My I-140 was approved in 2019. My priority date has not moved. My daughter is asking why we cannot buy a house.",q:"Do I keep waiting, or do we go?",chips:["H-1B","2 kids","stuck"],inputs:{income:220000,networth:380000,age:38,retireAge:55,kids:2,tier:3,work:'same',currentLoc:'usa_mcol',visa:'h1b',eduTarget:'us_public_instate',eduKidsCount:2,eduYearsOut:10,remittance:500,debtMonthly:800,indiaTripBudget:5000,parentsLoc:'india',compareIds:['usa_mcol','india_metro','india_t2','uae','singapore','australia']}},
-  {n:3,title:"The green card, finally",body:"The green card arrived three years ago. The kids are settled. My mother had a fall last month. I flew home for two weeks and everything about the trip felt urgent.",q:"Did I earn the freedom to move, or the obligation to stay?",chips:["GC","2 kids","parents aging"],inputs:{income:240000,networth:620000,age:42,retireAge:58,kids:2,tier:3,work:'same',currentLoc:'usa_mcol',visa:'gc',eduTarget:'us_public_instate',eduKidsCount:2,eduYearsOut:9,remittance:800,debtMonthly:1200,indiaTripBudget:5500,parentsLoc:'india',compareIds:['usa_mcol','india_metro','india_t2','india_small','uk']}},
-  {n:4,title:"The Exeter question",body:"I am 48. Green card since 2022. One daughter at boarding school in New Hampshire. The younger one is in middle school here. Our net worth is around 2.5 million. I keep opening a spreadsheet and closing it.",q:"If not now, then when?",chips:["GC","2 kids","pre-FIRE"],inputs:{income:400000,networth:2500000,age:48,retireAge:55,kids:2,tier:3,work:'same',currentLoc:'usa_hcol',visa:'gc',eduTarget:'us_private',eduKidsCount:2,eduYearsOut:6,remittance:800,debtMonthly:1500,indiaTripBudget:6000,parentsLoc:'india',compareIds:['usa_hcol','india_metro','india_t2','india_small','portugal','uae']}},
-  {n:5,title:"The wait that ended too late",body:"I became a citizen last year. My father passed six months before my ceremony. My mother lives alone in Chennai. I have three weeks of PTO.",q:"Is a passport worth what it cost me?",chips:["citizen","aging parent","forced choice"],inputs:{income:210000,networth:800000,age:45,retireAge:60,kids:1,tier:3,work:'same',currentLoc:'usa_mcol',visa:'citizen',eduTarget:'us_public_instate',eduKidsCount:1,eduYearsOut:8,remittance:1500,debtMonthly:600,indiaTripBudget:6000,parentsLoc:'india',compareIds:['usa_mcol','india_metro','india_t2','india_small','uk']}},
-  {n:6,title:"Both of us, and the tax",body:"We both work in tech. Combined we make around 380. No kids yet. A friend moved to Dubai two years ago and shows us his savings on WhatsApp.",q:"Do we chase the tax window while we still can?",chips:["DINK","high income","tax question"],inputs:{income:380000,networth:520000,age:34,retireAge:50,kids:0,tier:3,work:'same',currentLoc:'usa_hcol',visa:'gc',eduTarget:'na',eduKidsCount:0,eduYearsOut:0,remittance:400,debtMonthly:0,indiaTripBudget:5000,parentsLoc:'india',compareIds:['usa_hcol','uae','singapore','india_metro','portugal']}},
+  {n:3,title:"The green card, finally",body:"The green card arrived three years ago. The kids are settled. My mother had a fall last month. I flew home for two weeks and everything about the trip felt urgent.",q:"Did I earn the freedom to move, or the obligation to stay?",chips:["GC","2 kids","parents aging"],inputs:{income:240000,networth:620000,age:42,retireAge:58,kids:2,tier:3,work:'local',currentLoc:'usa_mcol',visa:'gc',eduTarget:'us_public_instate',eduKidsCount:2,eduYearsOut:9,remittance:800,debtMonthly:1200,indiaTripBudget:5500,parentsLoc:'india',compareIds:['usa_mcol','india_metro','india_t2','india_small','uk']}},
+  {n:4,title:"The Exeter question",body:"I am 48. Green card since 2022. One daughter at boarding school in New Hampshire. The younger one is in middle school here. Our net worth is around 2.5 million. I keep opening a spreadsheet and closing it.",q:"If not now, then when?",chips:["GC","2 kids","pre-FIRE"],inputs:{income:400000,networth:2500000,age:48,retireAge:55,kids:2,tier:3,work:'local',currentLoc:'usa_hcol',visa:'gc',eduTarget:'us_private',eduKidsCount:2,eduYearsOut:6,remittance:800,debtMonthly:1500,indiaTripBudget:6000,parentsLoc:'india',currentSchoolTuition:35000,currentSchoolContinues:'no',compareIds:['usa_hcol','india_metro','india_t2','india_small','portugal','uae']}},
+  {n:5,title:"The wait that ended too late",body:"I became a citizen last year. My father passed six months before my ceremony. My mother lives alone in Chennai. I have three weeks of PTO.",q:"Is a passport worth what it cost me?",chips:["citizen","aging parent","forced choice"],inputs:{income:210000,networth:800000,age:45,retireAge:60,kids:1,tier:3,work:'local',currentLoc:'usa_mcol',visa:'citizen',eduTarget:'us_public_instate',eduKidsCount:1,eduYearsOut:8,remittance:1500,debtMonthly:600,indiaTripBudget:6000,parentsLoc:'india',compareIds:['usa_mcol','india_metro','india_t2','india_small','uk']}},
+  {n:6,title:"Both of us, and the tax",body:"We both work in tech. Combined we make around 380. No kids yet. A friend moved to Dubai two years ago and shows us his savings on WhatsApp.",q:"Do we chase the tax window while we still can?",chips:["DINK","high income","tax question"],inputs:{income:380000,networth:520000,age:34,retireAge:50,kids:0,tier:3,work:'local',currentLoc:'usa_hcol',visa:'gc',eduTarget:'na',eduKidsCount:0,eduYearsOut:0,remittance:400,debtMonthly:0,indiaTripBudget:5000,parentsLoc:'india',compareIds:['usa_hcol','uae','singapore','india_metro','portugal']}},
   {n:7,title:"The laptop, the passport, the beach",body:"I am a remote engineer. My employer does not care where I sit. I have been in the same US suburb for nine years. Someone posted a Lisbon apartment for 1,400 euros.",q:"Am I actually free, or just telling myself I am?",chips:["remote","portable","GC"],inputs:{income:200000,networth:340000,age:36,retireAge:52,kids:0,tier:2,work:'remote',currentLoc:'usa_mcol',visa:'gc',eduTarget:'na',eduKidsCount:0,eduYearsOut:0,remittance:300,debtMonthly:0,indiaTripBudget:3000,parentsLoc:'india',portugalIfici:'yes',compareIds:['usa_mcol','portugal','india_metro','india_t2','uae']}},
   {n:8,title:"The 3.2 million question",body:"We have 3.2 million between us. I am 52, my husband is 54. The kids are done with college. Every article I read says we can retire in India for one tenth the cost.",q:"Is that true, or is that the version I want to believe?",chips:["pre-FIRE","empty nest","retire where"],inputs:{income:0,networth:3200000,age:52,retireAge:52,kids:0,tier:3,work:'fire',currentLoc:'usa_hcol',visa:'gc',eduTarget:'na',eduKidsCount:0,eduYearsOut:0,remittance:1000,debtMonthly:0,indiaTripBudget:7000,parentsLoc:'india',rnorYears:2,compareIds:['usa_hcol','india_metro','india_t2','india_small','portugal']}},
   {n:9,title:"The call from Hyderabad",body:"My father was admitted last night. My mother sounded calm on the phone which was worse than crying. My H-1B extension is pending. I have not told my manager yet.",q:"What do I do in the next 72 hours?",chips:["crisis","H-1B","forced timeline"],inputs:{income:180000,networth:220000,age:37,retireAge:55,kids:2,tier:2,work:'local',currentLoc:'usa_mcol',visa:'h1b',eduTarget:'us_public_instate',eduKidsCount:2,eduYearsOut:12,remittance:800,debtMonthly:1400,indiaTripBudget:4000,parentsLoc:'india',compareIds:['usa_mcol','india_metro','india_t2','india_small']}},
   {n:10,title:"The H4 year",body:"My wife left her job in Chennai when I brought her here. Her EAD paperwork has been pending for eleven months. She was a product manager. Now she watches YouTube in the afternoons.",q:"Whose career am I building?",chips:["H-1B primary","H4 spouse","one income"],inputs:{income:170000,networth:190000,age:33,retireAge:55,kids:1,tier:2,work:'local',currentLoc:'usa_mcol',visa:'h1b',eduTarget:'us_public_instate',eduKidsCount:1,eduYearsOut:12,remittance:600,debtMonthly:600,indiaTripBudget:4000,parentsLoc:'india',compareIds:['usa_mcol','india_metro','india_t2','uae','singapore']}},
-  {n:11,title:"The private school trap",body:"Both kids in private school. Sixty thousand a year, each. We told ourselves we would move before this stage. The older one starts high school in the fall.",q:"Did I commit to this future without noticing?",chips:["private school","2 kids","GC"],inputs:{income:320000,networth:900000,age:44,retireAge:58,kids:2,tier:3,work:'same',currentLoc:'usa_hcol',visa:'gc',eduTarget:'us_private',eduKidsCount:2,eduYearsOut:5,remittance:600,debtMonthly:2500,indiaTripBudget:5500,parentsLoc:'india',schoolPref:'private',compareIds:['usa_hcol','usa_mcol','india_metro','india_t2','uk']}},
+  {n:11,title:"The private school trap",body:"Both kids in private school. Sixty thousand a year, each. We told ourselves we would move before this stage. The older one starts high school in the fall.",q:"Did I commit to this future without noticing?",chips:["private school","2 kids","GC"],inputs:{income:320000,networth:900000,age:44,retireAge:58,kids:2,tier:3,work:'local',currentLoc:'usa_hcol',visa:'gc',eduTarget:'us_private',eduKidsCount:2,eduYearsOut:5,remittance:600,debtMonthly:2500,indiaTripBudget:5500,parentsLoc:'india',schoolPref:'private',currentSchoolTuition:60000,currentSchoolContinues:'no',compareIds:['usa_hcol','usa_mcol','india_metro','india_t2','uk']}},
 ];
 
 /* render landing */
@@ -400,7 +534,7 @@ fallback.setAttribute('aria-label','None of these fit — open the full form');
 fallback.onclick=()=>openAdvanced();
 fallback.innerHTML='<div class="card-num">— OR —</div>'+
   '<div class="card-title">My situation is different →</div>'+
-  '<div class="card-body">Open the full form and set every number yourself.</div>';
+  '<div class="card-body">Skip the story and tune every input yourself.</div>';
 grid.appendChild(fallback);
 
 /* flow */
@@ -415,18 +549,58 @@ function pickStory(n){
   document.getElementById('story-title').textContent=v.title;
   document.getElementById('story-body').textContent=v.body;
   document.getElementById('story-q').textContent=v.q;
+  document.getElementById('story-assumption').innerHTML=assumptionLine(CURRENT_INPUTS);
+  // populate expanded adjust panel
   document.getElementById('a-income').value=v.inputs.income;
   document.getElementById('a-networth').value=v.inputs.networth;
   document.getElementById('a-age').value=v.inputs.age;
+  document.getElementById('a-retireage').value=v.inputs.retireAge;
   document.getElementById('a-kids').value=v.inputs.kids;
   document.getElementById('a-tier').value=v.inputs.tier;
   document.getElementById('a-eduyears').value=v.inputs.eduYearsOut;
+  document.getElementById('a-work').value=v.inputs.work;
+  document.getElementById('a-edutarget').value=v.inputs.eduTarget||'na';
+  document.getElementById('a-remittance').value=v.inputs.remittance||0;
+  document.getElementById('a-debt').value=v.inputs.debtMonthly||0;
+  document.getElementById('a-tripbudget').value=v.inputs.indiaTripBudget||0;
+  document.getElementById('a-currentloc').value=v.inputs.currentLoc;
+  document.getElementById('a-visa').value=v.inputs.visa;
+  document.getElementById('a-portugalifici').value=v.inputs.portugalIfici||'no';
+  document.getElementById('a-rnor').value=String(v.inputs.rnorYears||0);
+  document.getElementById('a-schooltuition').value=v.inputs.currentSchoolTuition||0;
+  document.getElementById('a-schoolcontinues').value=v.inputs.currentSchoolContinues||'no';
   compute();
   showResult();
 }
 
+function assumptionLine(inp){
+  // The single most important assumption behind the result — surface it plainly.
+  const w=inp.work;
+  if(w==='same') return '<strong>Assumption behind this result:</strong> your current income continues at the same level in every location shown. Only choose this if the employer has confirmed it — otherwise open <em>Adjust</em> and change "What happens to income after moving" to "Local salary".';
+  if(w==='local') return '<strong>Assumption behind this result:</strong> in each country outside your current one, income is scaled to that market\u2019s typical local rate. Use "Adjust" if you have a real offer that pays more or less.';
+  if(w==='remote') return '<strong>Assumption behind this result:</strong> your full remote income continues wherever you live. Salary earned while working from India is generally taxable in India from day one.';
+  if(w==='fire') return '<strong>Assumption behind this result:</strong> no salary — spending comes from a 4% portfolio draw. This is a simplified model of retirement withdrawals.';
+  return '';
+}
+
 function buildInputs(p){
-  return {income:p.income,savings:p.networth,invReturn:0.05,remittance:p.remittance,indiaTripBudget:p.indiaTripBudget,desiredTier:p.tier-1,visa:p.visa,work:p.work,currentLoc:p.currentLoc,horizon:10,age:p.age,retireAge:p.retireAge,schoolPref:p.schoolPref||'public',healthPref:'private',kids:String(p.kids),incomeGrowth:0.02,riskTol:'med',parentsLoc:p.parentsLoc,debtMonthly:p.debtMonthly,eduKidsCount:p.eduKidsCount,eduTarget:p.eduTarget,eduYearsOut:p.eduYearsOut,rnorYears:p.rnorYears||0,portugalIfici:p.portugalIfici||'no',compareIds:p.compareIds};
+  return {
+    income:p.income,savings:p.networth,invReturn:0.05,
+    remittance:p.remittance,indiaTripBudget:p.indiaTripBudget,
+    desiredTier:p.tier-1,visa:p.visa,work:p.work,currentLoc:p.currentLoc,
+    horizon:10,age:p.age,retireAge:p.retireAge,
+    schoolPref:p.schoolPref||'public',healthPref:'private',
+    kids:String(p.kids),incomeGrowth:0.02,riskTol:'med',
+    parentsLoc:p.parentsLoc,debtMonthly:p.debtMonthly,
+    eduKidsCount:p.eduKidsCount,eduTarget:p.eduTarget,
+    // remember original target so it survives kids->0->2 without silent reset
+    _eduTargetOriginal:p.eduTarget,
+    eduYearsOut:p.eduYearsOut,
+    rnorYears:p.rnorYears||0,portugalIfici:p.portugalIfici||'no',
+    currentSchoolTuition:p.currentSchoolTuition||0,
+    currentSchoolContinues:p.currentSchoolContinues||'no',
+    compareIds:p.compareIds
+  };
 }
 
 function recompute(){
@@ -434,18 +608,55 @@ function recompute(){
   const inc=parseFloat(document.getElementById('a-income').value)||0;
   const nw=parseFloat(document.getElementById('a-networth').value)||0;
   const age=parseFloat(document.getElementById('a-age').value)||CURRENT_INPUTS.age;
+  const retireAge=parseFloat(document.getElementById('a-retireage').value)||CURRENT_INPUTS.retireAge;
   const kids=document.getElementById('a-kids').value;
   const tier=parseInt(document.getElementById('a-tier').value)||3;
   const eduY=Math.max(0,parseFloat(document.getElementById('a-eduyears').value)||0);
+  const eduTarget=document.getElementById('a-edutarget').value||'na';
+  const work=document.getElementById('a-work').value||'local';
+  const rem=Math.max(0,parseFloat(document.getElementById('a-remittance').value)||0);
+  const debt=Math.max(0,parseFloat(document.getElementById('a-debt').value)||0);
+  const trip=Math.max(0,parseFloat(document.getElementById('a-tripbudget').value)||0);
+  const curLoc=document.getElementById('a-currentloc').value||CURRENT_INPUTS.currentLoc;
+  const visa=document.getElementById('a-visa').value||CURRENT_INPUTS.visa;
+  const ifici=document.getElementById('a-portugalifici').value||'no';
+  const rnor=parseInt(document.getElementById('a-rnor').value||'0');
+  const tuition=Math.max(0,parseFloat(document.getElementById('a-schooltuition').value)||0);
+  const tuitionContinues=document.getElementById('a-schoolcontinues').value||'no';
   CURRENT_INPUTS.income=inc;
   CURRENT_INPUTS.savings=nw;
   CURRENT_INPUTS.age=age;
+  CURRENT_INPUTS.retireAge=retireAge;
   CURRENT_INPUTS.kids=kids;
   CURRENT_INPUTS.desiredTier=tier-1;
   CURRENT_INPUTS.eduYearsOut=eduY;
-  if(kids==='0'||eduY===0){CURRENT_INPUTS.eduKidsCount=0;CURRENT_INPUTS.eduTarget='na';}
-  else if(CURRENT_INPUTS.eduTarget==='na'&&kids!=='0'&&eduY>0){CURRENT_INPUTS.eduTarget='us_public_instate';CURRENT_INPUTS.eduKidsCount=parseInt(kids)||1;}
-  else {CURRENT_INPUTS.eduKidsCount=parseInt(kids)||CURRENT_INPUTS.eduKidsCount;}
+  CURRENT_INPUTS.work=work;
+  CURRENT_INPUTS.remittance=rem;
+  CURRENT_INPUTS.debtMonthly=debt;
+  CURRENT_INPUTS.indiaTripBudget=trip;
+  CURRENT_INPUTS.currentLoc=curLoc;
+  CURRENT_INPUTS.visa=visa;
+  CURRENT_INPUTS.portugalIfici=ifici;
+  CURRENT_INPUTS.rnorYears=rnor;
+  CURRENT_INPUTS.currentSchoolTuition=tuition;
+  CURRENT_INPUTS.currentSchoolContinues=tuitionContinues;
+  // Education target handling: preserve original when kids cycle, honor explicit change
+  if(kids==='0' || eduY===0){
+    CURRENT_INPUTS.eduKidsCount=0;
+    // Don't overwrite _eduTargetOriginal — just null out active target
+    CURRENT_INPUTS.eduTarget='na';
+  } else {
+    // Kids > 0. If dropdown says 'na', restore the original; otherwise take the dropdown.
+    if(eduTarget==='na'){
+      CURRENT_INPUTS.eduTarget=CURRENT_INPUTS._eduTargetOriginal || 'us_public_instate';
+    } else {
+      CURRENT_INPUTS.eduTarget=eduTarget;
+      CURRENT_INPUTS._eduTargetOriginal=eduTarget;
+    }
+    CURRENT_INPUTS.eduKidsCount=parseInt(kids)||CURRENT_INPUTS.eduKidsCount;
+  }
+  // update visible assumption line to reflect any work mode change
+  document.getElementById('story-assumption').innerHTML=assumptionLine(CURRENT_INPUTS);
   compute();
 }
 
@@ -453,13 +664,6 @@ function compute(){
   const inp=CURRENT_INPUTS;
   const gs=document.getElementById('guardrail-slot');
   gs.innerHTML='';
-  const eduFund=eduMonthlySavings(inp);
-  const eduAnnual=eduFund*12;
-  const grossCheck=inp.work==='fire'?inp.savings*0.04:inp.income;
-  if(grossCheck>0&&eduAnnual/grossCheck>0.30){
-    const pct=Math.round((eduAnnual/grossCheck)*100);
-    gs.innerHTML='<div class="guardrail"><strong>Heads up.</strong> Funding college on this timeline would eat '+pct+'% of your gross income ('+fmtD(eduAnnual)+' per year toward a '+fmtD(EDU_PRESETS[inp.eduTarget]*inp.eduKidsCount)+' target). That is mathematically impossible on top of rent, tax, and life. Every location will show a deficit until you either stretch the years, lower the target, or raise income. Adjust the years-until-college below and recalculate.</div>';
-  }
   const results={};
   inp.compareIds.forEach(id=>{
     if(!LOC[id])return;
@@ -473,10 +677,59 @@ function compute(){
     const traj=netWorthTrajectory(id,inp,cost,0.05,10);
     results[id]={cost,gross,netMo,saves,savesRate,fire,traj,end:traj[traj.length-1]};
   });
+  // Show a soft advisory when the education sinking fund is eating a very large
+  // slice of gross AND at least one location is showing a deficit. Do not use
+  // absolute language — sometimes low-tax + low-cost locations survive it.
+  const eduFund=eduMonthlySavings(inp);
+  const eduAnnual=eduFund*12;
+  const grossCheck=inp.work==='fire'?inp.savings*0.04:inp.income;
+  const anyLocationSaves=Object.values(results).some(r=>r.saves>0);
+  if(grossCheck>0 && eduAnnual/grossCheck>0.30){
+    const pct=Math.round((eduAnnual/grossCheck)*100);
+    const suffix=anyLocationSaves
+      ? 'Some locations still leave room, but expect tight margins everywhere.'
+      : 'On this timeline, every location shows a deficit. Stretching the years, lowering the target, or raising income will change the picture.';
+    gs.innerHTML='<div class="guardrail"><strong>Heads up.</strong> Your education target uses about '+pct+'% of gross income ('+fmtD(eduAnnual)+' per year toward a '+fmtD(EDU_PRESETS[inp.eduTarget]*inp.eduKidsCount)+' target). '+suffix+' You can adjust the years-until-college or the college target below.</div>';
+  }
   const ranked=Object.keys(results).sort((a,b)=>results[b].end-results[a].end);
   renderHeadline(ranked,results,inp);
   renderTop3(ranked,results,inp);
+  renderLifeFit(ranked,inp);
   renderChart(ranked,results,inp);
+}
+
+function scoreClass(n){return n>=8?'hi':n>=5?'mid':'lo';}
+
+function renderLifeFit(ranked,inp){
+  // Show a compact table of the five life dimensions that matter most for NRIs
+  // and are NOT captured in the money ranking. Uses author-maintained QoL scores.
+  const dims=[
+    {k:'family',label:'Family closeness',pick:id=>{
+      const isIndia=INDIA_IDS.includes(id);
+      const p=inp.parentsLoc||'india';
+      if(p==='not_factor')return 5;
+      if(p==='split')return isIndia?8:6;
+      if(p==='current')return isIndia?4:9;
+      return isIndia?10:Math.max(2,LOC[id].qol.community-2);
+    }},
+    {k:'visa',label:'Immigration stability',pick:id=>LOC[id].visaStability},
+    {k:'healthcare',label:'Healthcare access',pick:id=>LOC[id].qol.healthcare},
+    {k:'education',label:'Kids\u2019 education',pick:id=>LOC[id].qol.education},
+    {k:'safety',label:'Safety & air',pick:id=>Math.round((LOC[id].qol.safety+LOC[id].qol.aqi)/2)},
+  ];
+  const top=ranked.slice(0,5);
+  let html='<div class="lifefit-table">';
+  html+='<div class="lifefit-row header"><div class="cell-label">Dimension</div>'+top.map(id=>'<div class="cell-head">'+LOC[id].flag+' '+LOC[id].name.replace(/^.+· /,'')+'</div>').join('')+'</div>';
+  dims.forEach(d=>{
+    html+='<div class="lifefit-row"><div class="cell-label">'+d.label+'</div>';
+    top.forEach(id=>{
+      const v=d.pick(id);
+      html+='<div class="cell-score '+scoreClass(v)+'">'+v+'</div>';
+    });
+    html+='</div>';
+  });
+  html+='</div>';
+  document.getElementById('lifefit-table').innerHTML=html;
 }
 
 function renderHeadline(ranked,results,inp){
@@ -509,9 +762,15 @@ function renderTop3(ranked,results,inp){
   el.innerHTML=ranked.slice(0,3).map((id,i)=>{
     const r=results[id];
     const loc=LOC[id];
-    const rankLabels=['STRONGEST','SECOND','THIRD'];
+    const rankLabels=['HIGHEST PROJECTED WEALTH','SECOND BY PROJECTED WEALTH','THIRD BY PROJECTED WEALTH'];
     const savesClass=r.saves>=0?'pos':'neg';
-    const fireText=r.fire===null?'50+ yrs':(r.fire===0?'today':r.fire+' yrs');
+    // Patch 4: use age & retireAge to render FIRE display in retirement terms
+    const yearsToRetire=Math.max(0,(inp.retireAge||55)-(inp.age||40));
+    let fireText;
+    if(r.fire===null)fireText='not reached in 50y';
+    else if(r.fire===0)fireText='already there';
+    else if(r.fire<=yearsToRetire)fireText=r.fire+' yrs (in time for retirement)';
+    else fireText=r.fire+' yrs (past target age)';
     const verdict=verdictFor(id,r,inp);
     return '<div class="rank">'+
       '<div class="rank-num">'+rankLabels[i]+'</div>'+
@@ -523,7 +782,10 @@ function renderTop3(ranked,results,inp){
       '<div class="metric-row"><span class="metric-label">Time to FI</span><span class="metric-val">'+fireText+'</span></div>'+
       '<div class="verdict">'+verdict+'</div>'+
       '</div>';
-  }).join('');
+  }).join('')+
+  '<div style="grid-column:1/-1;background:var(--paper-shade);padding:14px 20px;font-size:13px;color:var(--muted);line-height:1.55">'+
+  '<strong style="color:var(--ink);font-weight:600">Ranked by money only.</strong> These three are ordered by projected net worth after ten years — not by which is "best for your family." Family closeness, healthcare, schools, air quality and visa stability are shown separately below and vary sharply between these locations. Read the story-specific verdict inside each card.'+
+  '</div>';
 }
 
 function verdictFor(id,r,inp){
@@ -534,8 +796,8 @@ function verdictFor(id,r,inp){
   if(isIndia&&!isFire&&r.savesRate>=0.3) return 'Foreign income against local costs — the strongest wealth position on this list. Tax on salary earned from India applies from day one.';
   if(isIndia) return 'The daily life works. Family close. Confirm foreign salary keeps flowing after the move.';
   if(id==='uae') return 'Zero income tax is real. Visa is tied to your job. Not a permanent home for most people.';
-  if(id==='portugal'&&inp.portugalIfici==='yes') return 'IFICI at 20 percent makes remote USD income efficient. Local senior jobs are thin.';
-  if(id==='portugal') return 'Nice lifestyle, low cost. Without confirmed IFICI, taxes on high income are heavy.';
+  if(id==='portugal'&&inp.portugalIfici==='yes') return 'The 20% IFICI headline rate applies only to qualifying activities. This calculator uses a cautious 28% planning rate on your remote income even with IFICI confirmed. Local senior jobs are thin.';
+  if(id==='portugal') return 'Nice lifestyle, low cost. Without confirmed IFICI, high remote income is taxed at Portuguese rates — heavy.';
   if(id==='singapore') return 'Best-in-class safety and schools. Housing eats a third of gross. Citizenship path is not guaranteed.';
   if(id==='uk') return 'NHS is a real savings on healthcare. Tax is heavy at your income. Strong Indian community.';
   if(id==='canada') return 'Clear PR to citizenship path. Toronto and Vancouver housing now rivals US HCOL.';
@@ -606,7 +868,16 @@ function fmtAxis(n){const a=Math.abs(n);const s=n<0?'-':'';if(a>=1e6)return s+'$
 /* nav */
 function showResult(){document.getElementById('landing').style.display='none';document.getElementById('result').classList.add('active');window.scrollTo({top:0,behavior:'instant'});}
 function showLanding(){document.getElementById('landing').style.display='';document.getElementById('result').classList.remove('active');window.scrollTo({top:0,behavior:'instant'});}
-function openAdvanced(){window.location.href='advanced.html';}
+function openAllControls(){
+  // If a story hasn't been picked yet, gently prompt them to pick the closest match
+  if(!CURRENT_STORY){
+    // Load story #2 as a reasonable starting default (mid-career family, H-1B)
+    pickStory(2);
+  }
+  const panel=document.getElementById('adjust-panel');
+  if(panel){panel.open=true;panel.scrollIntoView({behavior:'smooth',block:'start'});}
+}
+function openAdvanced(){openAllControls();}
 </script>
 </body>
 </html>
