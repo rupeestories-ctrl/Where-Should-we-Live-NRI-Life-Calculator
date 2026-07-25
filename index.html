@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Where should we live? — NRI Life Calculator v4.2</title>
+<title>Where should we live? — NRI Life Calculator v4.2.2</title>
 <meta name="description" content="Pick the story that sounds like yours. Get an honest look at what staying, moving to India, or trying a third country would actually mean for your family.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Where should we live? — a decision tool for NRIs">
@@ -299,7 +299,7 @@ footer a:hover{color:var(--ink)}
           <option value="remote">Remote foreign income (same pay, wherever you live)</option>
           <option value="fire">Not working — 4% portfolio draw</option>
         </select>
-        <div class="hint">This assumption drives more than any other number. Do not choose "same" unless there is a real offer.</div>
+        <div class="hint">This assumption drives more than any other number. Do not choose "same" unless there is a real offer. "Local" uses conservative senior-IC / senior-manager comp benchmarks &mdash; a Director or C-level move would pay meaningfully more. An IC without seniority would pay less.</div>
       </div>
       <div class="field">
         <label for="a-networth">Net worth (USD)</label>
@@ -434,7 +434,7 @@ footer a:hover{color:var(--ink)}
     Data version July 22, 2026 <span class="dot">·</span> Engine v3.3.1 <span class="dot">·</span>
     <a href="#" onclick="event.preventDefault();openAllControls()">Tune every input yourself</a> <span class="dot">·</span>
     <span class="built">Built for r/RupeeStories.</span>
-    <span class="version"> v4.2</span>
+    <span class="version"> v4.2.2</span>
   </p>
 </footer>
 
@@ -443,14 +443,14 @@ footer a:hover{color:var(--ink)}
 const LOC = {
   usa_hcol:{name:'USA · HCOL', sub:'SF Bay, NYC, Seattle', flag:'🇺🇸',
     costs:[5500,8800,14000,23000],
-    taxBands:[[0,.14],[80000,.28],[160000,.35],[250000,.41],[400000,.45],[700000,.47]],
+    taxBands:[[0,.15],[80000,.19],[160000,.25],[250000,.30],[400000,.35],[700000,.40]],
     qol:{safety:7,healthcare:9,aqi:7,convenience:5,wlb:5,education:9,community:6},
     visaStability:4, indiaTripCost:4800,
     schoolSurcharge:{public:0,private:800,intl:1400},
     healthSurcharge:{public:0,private:500,premium:1200}},
   usa_mcol:{name:'USA · MCOL', sub:'Austin, Denver, Chicago', flag:'🇺🇸',
     costs:[3700,5900,9500,16000],
-    taxBands:[[0,.11],[80000,.22],[150000,.29],[250000,.34],[400000,.38],[700000,.41]],
+    taxBands:[[0,.13],[80000,.17],[150000,.22],[250000,.26],[400000,.30],[700000,.34]],
     qol:{safety:7,healthcare:8,aqi:7,convenience:5,wlb:6,education:8,community:6},
     visaStability:4, indiaTripCost:4200,
     schoolSurcharge:{public:0,private:650,intl:1100},
@@ -523,7 +523,7 @@ const LOC = {
 const INDIA_IDS=['india_metro','india_t2','india_small'];
 const TIERS=['Basic','Comfortable','Premium','Luxury'];
 const FAMILY_MULT={'0':0.82,'1':1.00,'2':1.28,'3':1.50};
-const LOCAL_INCOME_MULT={usa_hcol:1.00,usa_mcol:0.90,uk:0.70,uae:0.85,singapore:0.85,australia:0.70,germany:0.65,portugal:0.45,canada:0.75,india_metro:0.40,india_t2:0.32,india_small:0.25};
+const LOCAL_INCOME_MULT={usa_hcol:1.00,usa_mcol:0.85,uk:0.42,uae:0.55,singapore:0.55,australia:0.45,germany:0.38,portugal:0.28,canada:0.48,india_metro:0.30,india_t2:0.22,india_small:0.16};
 const EDU_PRESETS={na:0,local_public:15000,india_private_engg_med:60000,uk_australia:160000,us_public_instate:100000,us_public_outofstate:220000,us_private:320000};
 
 const clamp=(n,lo,hi)=>Math.max(lo,Math.min(hi,n));
@@ -554,15 +554,53 @@ function taxRateFor(locId,inp,year,gross){const loc=LOC[locId];const isFire=inp.
 function netMoAt(locId,inp,year,gross){const rate=taxRateFor(locId,inp,year,gross);return (Math.max(0,gross)*(1-rate))/12-monthlyExtras(locId,inp,year);}
 function childCountFor(f){return parseInt(f)||0;}
 function getTierCost(locId,tier,inp){const loc=LOC[locId];const base=loc.costs[clamp(tier,0,3)];const fm=FAMILY_MULT[String(inp.kids||0)]||1.00;const kids=childCountFor(inp.kids);const school=((loc.schoolSurcharge||{})[inp.schoolPref||'public']||0)*kids;const health=(loc.healthSurcharge||{})[inp.healthPref||'public']||0;return Math.round(base*fm+school+health);}
-function fireYears(locId,inp,cost,rtn){const target=(cost+permanentMonthlyExtras(locId,inp))*12*25;const isFire=inp.work==='fire';let gross=grossFor(inp,locId);let bal=inp.savings;for(let y=0;y<=50;y++){if(bal>=target)return y;if(y>0&&!isFire)gross*=(1+(inp.incomeGrowth||0));const netMo=netMoAt(locId,inp,y+1,gross);bal=bal*(1+rtn)+(netMo-cost)*12-(isFire?gross:0);if(bal<=0)return null;}return null;}
-function netWorthTrajectory(locId,inp,cost,rtn,years){const arr=[inp.savings];let bal=inp.savings;let gross=grossFor(inp,locId);const isFire=inp.work==='fire';for(let y=1;y<=years;y++){if(y>1&&!isFire)gross*=(1+(inp.incomeGrowth||0));const netMo=netMoAt(locId,inp,y,gross);bal=Math.max(0,bal*(1+rtn)+(netMo-cost)*12-(isFire?gross:0));arr.push(Math.round(bal));}return arr;}
+function fireYears(locId,inp,cost,rtn){
+  const target=(cost+permanentMonthlyExtras(locId,inp))*12*25;
+  const isFire=inp.work==='fire';
+  let gross=grossFor(inp,locId);
+  let bal=inp.savings;
+  const eduTotal=(EDU_PRESETS[inp.eduTarget]||0)*(inp.eduKidsCount||0);
+  const eduYears=Math.max(1,inp.eduYearsOut??10);
+  const eduPayoutPerYear=eduTotal>0?eduTotal/4:0;
+  for(let y=0;y<=50;y++){
+    if(bal>=target)return y;
+    if(y>0 && !isFire)gross*=(1+(inp.incomeGrowth||0));
+    const netMo=netMoAt(locId,inp,y+1,gross);
+    const collegeYear=(y+1>eduYears && y+1<=eduYears+4)?eduPayoutPerYear:0;
+    bal=bal*(1+rtn)+(netMo-cost)*12-(isFire?gross:0)-collegeYear;
+    if(bal<=0)return null;
+  }
+  return null;
+}
+function netWorthTrajectory(locId,inp,cost,rtn,years){
+  // Model: fund is built years 1..eduYearsOut. Then paid out over the following
+  // 4 years to model tuition drawdown. Total drawn = perChild * kidsCount.
+  // This prevents the pre-funded amount from staying in the wealth pile after
+  // college is over.
+  const arr=[inp.savings];
+  let bal=inp.savings;
+  let gross=grossFor(inp,locId);
+  const isFire=inp.work==='fire';
+  const eduTotal=(EDU_PRESETS[inp.eduTarget]||0)*(inp.eduKidsCount||0);
+  const eduYears=Math.max(1,inp.eduYearsOut??10);
+  const eduPayoutPerYear=eduTotal>0?eduTotal/4:0;
+  for(let y=1;y<=years;y++){
+    if(y>1 && !isFire)gross*=(1+(inp.incomeGrowth||0));
+    const netMo=netMoAt(locId,inp,y,gross);
+    // College spending years: eduYears+1 through eduYears+4
+    const collegeYear=(y>eduYears && y<=eduYears+4)?eduPayoutPerYear:0;
+    bal=Math.max(0,bal*(1+rtn)+(netMo-cost)*12-(isFire?gross:0)-collegeYear);
+    arr.push(Math.round(bal));
+  }
+  return arr;
+}
 
 /* vignettes */
 const VIGNETTES=[
   {n:1,title:"The first year math",body:"I finished school last year. My first offer was 145. My friends in Bangalore made half that but they own a car. My rent is 2,600 and my parents are wondering when I will visit.",q:"Is this really the deal I signed up for?",chips:["H-1B","single","early career"],inputs:{income:145000,networth:20000,age:26,retireAge:55,kids:0,tier:2,work:'local',currentLoc:'usa_mcol',visa:'h1b',eduTarget:'na',eduKidsCount:0,eduYearsOut:0,remittance:200,debtMonthly:400,indiaTripBudget:3500,parentsLoc:'india',compareIds:['usa_mcol','india_metro','india_t2','uae','singapore']}},
   {n:2,title:"Eleven years in the queue",body:"I have been on H-1B for eleven years. Both kids were born here. My I-140 was approved in 2019. My priority date has not moved. My daughter is asking why we cannot buy a house.",q:"Do I keep waiting, or do we go?",chips:["H-1B","2 kids","stuck"],inputs:{income:220000,networth:380000,age:38,retireAge:55,kids:2,tier:3,work:'same',currentLoc:'usa_mcol',visa:'h1b',eduTarget:'us_public_instate',eduKidsCount:2,eduYearsOut:10,remittance:500,debtMonthly:800,indiaTripBudget:5000,parentsLoc:'india',compareIds:['usa_mcol','india_metro','india_t2','uae','singapore','australia']}},
   {n:3,title:"The green card, finally",body:"The green card arrived three years ago. The kids are settled. My mother had a fall last month. I flew home for two weeks and everything about the trip felt urgent.",q:"Did I earn the freedom to move, or the obligation to stay?",chips:["GC","2 kids","parents aging"],inputs:{income:240000,networth:620000,age:42,retireAge:58,kids:2,tier:3,work:'local',currentLoc:'usa_mcol',visa:'gc',eduTarget:'us_public_instate',eduKidsCount:2,eduYearsOut:9,remittance:800,debtMonthly:1200,indiaTripBudget:5500,parentsLoc:'india',compareIds:['usa_mcol','india_metro','india_t2','india_small','uk']}},
-  {n:4,title:"The Exeter question",body:"I am 48. Green card since 2022. One daughter at boarding school in New Hampshire. The younger one is in middle school here. Our net worth is around 2.5 million. I keep opening a spreadsheet and closing it.",q:"If not now, then when?",chips:["GC","2 kids","pre-FIRE"],inputs:{income:400000,networth:2500000,age:48,retireAge:55,kids:2,tier:3,work:'local',currentLoc:'usa_hcol',visa:'gc',eduTarget:'us_private',eduKidsCount:2,eduYearsOut:6,remittance:800,debtMonthly:1500,indiaTripBudget:6000,parentsLoc:'india',currentSchoolTuition:35000,currentSchoolContinues:'no',compareIds:['usa_hcol','india_metro','india_t2','india_small','portugal','uae']}},
+  {n:4,title:"The Exeter question",body:"I am 48. Green card since 2022. One daughter at boarding school in New Hampshire. The younger one is in middle school here. Our net worth is around 2.5 million. I keep opening a spreadsheet and closing it.",q:"If not now, then when?",chips:["GC","2 kids","pre-FIRE"],inputs:{income:400000,networth:2500000,age:48,retireAge:55,kids:2,tier:3,work:'local',currentLoc:'usa_hcol',visa:'gc',eduTarget:'us_private',eduKidsCount:2,eduYearsOut:6,remittance:800,debtMonthly:1500,indiaTripBudget:6000,parentsLoc:'india',schoolPref:'intl',currentSchoolTuition:35000,currentSchoolContinues:'no',compareIds:['usa_hcol','india_metro','india_t2','india_small','portugal','uae']}},
   {n:5,title:"The wait that ended too late",body:"I became a citizen last year. My father passed six months before my ceremony. My mother lives alone in Chennai. I have three weeks of PTO.",q:"Is a passport worth what it cost me?",chips:["citizen","aging parent","forced choice"],inputs:{income:210000,networth:800000,age:45,retireAge:60,kids:1,tier:3,work:'local',currentLoc:'usa_mcol',visa:'citizen',eduTarget:'us_public_instate',eduKidsCount:1,eduYearsOut:8,remittance:1500,debtMonthly:600,indiaTripBudget:6000,parentsLoc:'india',compareIds:['usa_mcol','india_metro','india_t2','india_small','uk']}},
   {n:6,title:"Both of us, and the tax",body:"We both work in tech. Combined we make around 380. No kids yet. A friend moved to Dubai two years ago and shows us his savings on WhatsApp.",q:"Do we chase the tax window while we still can?",chips:["DINK","high income","tax question"],inputs:{income:380000,networth:520000,age:34,retireAge:50,kids:0,tier:3,work:'local',currentLoc:'usa_hcol',visa:'gc',eduTarget:'na',eduKidsCount:0,eduYearsOut:0,remittance:400,debtMonthly:0,indiaTripBudget:5000,parentsLoc:'india',compareIds:['usa_hcol','uae','singapore','india_metro','portugal']}},
   {n:7,title:"The laptop, the passport, the beach",body:"I am a remote engineer. My employer does not care where I sit. I have been in the same US suburb for nine years. Someone posted a Lisbon apartment for 1,400 euros.",q:"Am I actually free, or just telling myself I am?",chips:["remote","portable","GC"],inputs:{income:200000,networth:340000,age:36,retireAge:52,kids:0,tier:2,work:'remote',currentLoc:'usa_mcol',visa:'gc',eduTarget:'na',eduKidsCount:0,eduYearsOut:0,remittance:300,debtMonthly:0,indiaTripBudget:3000,parentsLoc:'india',portugalIfici:'yes',compareIds:['usa_mcol','portugal','india_metro','india_t2','uae']}},
@@ -630,8 +668,8 @@ function pickStory(n){
   document.getElementById('a-schooltuition').value=v.inputs.currentSchoolTuition||0;
   document.getElementById('a-schoolcontinues').value=v.inputs.currentSchoolContinues||'no';
   syncConditionalFields();
+  showResult();  // reveal first so the canvas has real dimensions when we draw
   compute();
-  showResult();
 }
 
 function assumptionLine(inp){
@@ -1005,13 +1043,24 @@ function fmtAxis(n){const a=Math.abs(n);const s=n<0?'-':'';if(a>=1e6)return s+'$
 function showResult(){document.getElementById('landing').style.display='none';document.getElementById('result').classList.add('active');window.scrollTo({top:0,behavior:'instant'});}
 function showLanding(){document.getElementById('landing').style.display='';document.getElementById('result').classList.remove('active');window.scrollTo({top:0,behavior:'instant'});}
 function openAllControls(){
-  // If a story hasn't been picked yet, gently prompt them to pick the closest match
+  // If a story hasn't been picked yet, load a reasonable default so there is
+  // something to tune.
   if(!CURRENT_STORY){
-    // Load story #2 as a reasonable starting default (mid-career family, H-1B)
     pickStory(2);
   }
   const panel=document.getElementById('adjust-panel');
-  if(panel){panel.open=true;panel.scrollIntoView({behavior:'smooth',block:'start'});}
+  if(!panel)return;
+  panel.open=true;
+  // Defer the scroll by one animation frame so the display change from
+  // showResult() has a chance to settle before we measure the panel's position.
+  requestAnimationFrame(()=>{
+    if(panel.scrollIntoView){
+      panel.scrollIntoView({behavior:'smooth',block:'start'});
+    } else {
+      // Fallback for older browsers — jump without animation
+      panel.getBoundingClientRect && window.scrollTo(0,panel.getBoundingClientRect().top+window.scrollY-16);
+    }
+  });
 }
 function openAdvanced(){openAllControls();}
 
@@ -1079,8 +1128,8 @@ function loadFromHash(){
   document.getElementById('a-schooltuition').value=CURRENT_INPUTS.currentSchoolTuition||0;
   document.getElementById('a-schoolcontinues').value=CURRENT_INPUTS.currentSchoolContinues||'no';
   syncConditionalFields();
-  compute();
   showResult();
+  compute();
   return true;
 }
 
