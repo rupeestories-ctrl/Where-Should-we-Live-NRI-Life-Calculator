@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Where should we live? — NRI Life Calculator v4.2.2</title>
+<title>Where should we live? — NRI Life Calculator v4.2.3</title>
 <meta name="description" content="Pick the story that sounds like yours. Get an honest look at what staying, moving to India, or trying a third country would actually mean for your family.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Where should we live? — a decision tool for NRIs">
 <meta property="og:description" content="Pick the story that sounds like yours. See what the numbers actually say.">
-<meta property="og:url" content="https://rupeestories-ctrl.github.io/nri-life-calculator/">
-<meta property="og:image" content="https://rupeestories-ctrl.github.io/nri-life-calculator/og.png?v=4-2">
+<meta property="og:url" content="https://rupeestories-ctrl.github.io/Where-Should-we-Live-NRI-Life-Calculator/">
+<meta property="og:image" content="https://rupeestories-ctrl.github.io/Where-Should-we-Live-NRI-Life-Calculator/og.png?v=4-2-3">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
@@ -434,7 +434,7 @@ footer a:hover{color:var(--ink)}
     Data version July 22, 2026 <span class="dot">·</span> Engine v3.3.1 <span class="dot">·</span>
     <a href="#" onclick="event.preventDefault();openAllControls()">Tune every input yourself</a> <span class="dot">·</span>
     <span class="built">Built for r/RupeeStories.</span>
-    <span class="version"> v4.2.2</span>
+    <span class="version"> v4.2.3</span>
   </p>
 </footer>
 
@@ -692,8 +692,6 @@ function buildInputs(p){
     kids:String(p.kids),incomeGrowth:0.02,riskTol:'med',
     parentsLoc:p.parentsLoc,debtMonthly:p.debtMonthly,
     eduKidsCount:p.eduKidsCount,eduTarget:p.eduTarget,
-    // remember original target so it survives kids->0->2 without silent reset
-    _eduTargetOriginal:p.eduTarget,
     eduYearsOut:p.eduYearsOut,
     rnorYears:p.rnorYears||0,portugalIfici:p.portugalIfici||'no',
     currentSchoolTuition:p.currentSchoolTuition||0,
@@ -739,20 +737,13 @@ function recompute(){
   CURRENT_INPUTS.rnorYears=rnor;
   CURRENT_INPUTS.currentSchoolTuition=tuition;
   CURRENT_INPUTS.currentSchoolContinues=tuitionContinues;
-  // Education target handling: preserve original when kids cycle, honor explicit change
-  if(kids==='0' || eduY===0){
+  // Education target: honor the dropdown as the user's explicit choice. 'na'
+  // means "not funding college separately" — respect it even when kids > 0.
+  CURRENT_INPUTS.eduTarget=eduTarget;
+  if(kids==='0' || eduY===0 || eduTarget==='na'){
     CURRENT_INPUTS.eduKidsCount=0;
-    // Don't overwrite _eduTargetOriginal — just null out active target
-    CURRENT_INPUTS.eduTarget='na';
   } else {
-    // Kids > 0. If dropdown says 'na', restore the original; otherwise take the dropdown.
-    if(eduTarget==='na'){
-      CURRENT_INPUTS.eduTarget=CURRENT_INPUTS._eduTargetOriginal || 'us_public_instate';
-    } else {
-      CURRENT_INPUTS.eduTarget=eduTarget;
-      CURRENT_INPUTS._eduTargetOriginal=eduTarget;
-    }
-    CURRENT_INPUTS.eduKidsCount=parseInt(kids)||CURRENT_INPUTS.eduKidsCount;
+    CURRENT_INPUTS.eduKidsCount=parseInt(kids)||1;
   }
   // update visible assumption line to reflect any work mode change
   document.getElementById('story-assumption').innerHTML=assumptionLine(CURRENT_INPUTS);
@@ -1066,10 +1057,13 @@ function openAdvanced(){openAllControls();}
 
 /* ═════════════════ PERSISTENCE ═════════════════ */
 // Serialize inputs to a compact hash. Base64 the JSON representation.
-// The hash also carries story number so the story panel restores.
+// The hash carries a schema version (v), a story number (s), and the fields.
+// SETUP_SCHEMA_VERSION bumps any time the payload shape changes in a way that
+// old links can no longer be safely decoded.
+const SETUP_SCHEMA_VERSION=42;
 const HASH_FIELDS=['income','savings','age','retireAge','kids','desiredTier','work','currentLoc','visa','eduTarget','eduKidsCount','eduYearsOut','remittance','debtMonthly','indiaTripBudget','rnorYears','portugalIfici','currentSchoolTuition','currentSchoolContinues','parentsLoc'];
 function encodeInputs(storyN,inp){
-  const payload={s:storyN};
+  const payload={v:SETUP_SCHEMA_VERSION,s:storyN};
   HASH_FIELDS.forEach(f=>{
     let v=inp[f];
     if(v===undefined||v===null||v==='')return;
@@ -1096,7 +1090,7 @@ function updateHash(inp){
 }
 function loadFromHash(){
   const decoded=decodeInputs(location.hash);
-  if(!decoded||!decoded.s)return false;
+  if(!decoded || decoded.v!==SETUP_SCHEMA_VERSION || !decoded.s)return false;
   const v=VIGNETTES.find(x=>x.n===decoded.s);
   if(!v)return false;
   // Start with story defaults, then override with hash fields
