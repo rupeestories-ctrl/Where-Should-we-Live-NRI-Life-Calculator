@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Where should we live? — NRI Life Calculator v4.2.4</title>
+<title>Where should we live? — NRI Life Calculator v4.2.5</title>
 <meta name="description" content="Pick the story that sounds like yours. Get an honest look at what staying, moving to India, or trying a third country would actually mean for your family.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Where should we live? — a decision tool for NRIs">
@@ -265,7 +265,7 @@ footer a:hover{color:var(--ink)}
 
   <div class="chart-block">
     <h3>Where your money goes over the next decade</h3>
-    <p class="sub">Projected net worth in today's dollars. Assumes the tier of life you would want, less what you would actually spend, invested at 5 percent real return. Deficits drain savings.</p>
+    <p class="sub">Projected retirement wealth in today's dollars. Assumes the tier of life you would want, less what you would actually spend, invested at 5 percent real return. College savings, if any, are tracked separately and not shown here. Deficits drain savings.</p>
     <canvas id="chart" height="240" role="img" aria-label="Net worth trajectory by location"></canvas>
     <div class="legend" id="legend"></div>
     <div class="share-bar">
@@ -356,7 +356,7 @@ footer a:hover{color:var(--ink)}
           <option value="us_public_outofstate">US public, out-of-state (~$220k)</option>
           <option value="us_private">US private (~$320k)</option>
         </select>
-        <div class="hint">Amounts are in today&rsquo;s dollars. The tool builds the fund at your real return rate and draws it down when college starts &mdash; assuming contributions grow to hit the target in real terms.</div>
+        <div class="hint">Amounts are in today&rsquo;s dollars. Monthly contributions reduce your take-home cash flow. The college fund itself is tracked separately &mdash; it is not part of the retirement wealth shown in the chart.</div>
       </div>
       <div class="field">
         <label for="a-eduyears">Years until oldest starts college</label>
@@ -435,7 +435,7 @@ footer a:hover{color:var(--ink)}
     Data version July 22, 2026 <span class="dot">·</span> Engine v3.3.1 <span class="dot">·</span>
     <a href="#" onclick="event.preventDefault();openAllControls()">Tune every input yourself</a> <span class="dot">·</span>
     <span class="built">Built for r/RupeeStories.</span>
-    <span class="version"> v4.2.4</span>
+    <span class="version"> v4.2.5</span>
   </p>
 </footer>
 
@@ -556,41 +556,37 @@ function netMoAt(locId,inp,year,gross){const rate=taxRateFor(locId,inp,year,gros
 function childCountFor(f){return parseInt(f)||0;}
 function getTierCost(locId,tier,inp){const loc=LOC[locId];const base=loc.costs[clamp(tier,0,3)];const fm=FAMILY_MULT[String(inp.kids||0)]||1.00;const kids=childCountFor(inp.kids);const school=((loc.schoolSurcharge||{})[inp.schoolPref||'public']||0)*kids;const health=(loc.healthSurcharge||{})[inp.healthPref||'public']||0;return Math.round(base*fm+school+health);}
 function fireYears(locId,inp,cost,rtn){
+  // Model A: college contributions already reduce monthly cash flow via
+  // monthlyExtras. The college fund is treated as an off-book asset (like a
+  // 529). We do not deduct tuition from the retirement pile again here.
   const target=(cost+permanentMonthlyExtras(locId,inp))*12*25;
   const isFire=inp.work==='fire';
   let gross=grossFor(inp,locId);
   let bal=inp.savings;
-  const eduTotal=(EDU_PRESETS[inp.eduTarget]||0)*(inp.eduKidsCount||0);
-  const eduYears=Math.max(1,inp.eduYearsOut??10);
-  const eduPayoutPerYear=eduTotal>0?eduTotal/4:0;
   for(let y=0;y<=50;y++){
     if(bal>=target)return y;
     if(y>0 && !isFire)gross*=(1+(inp.incomeGrowth||0));
     const netMo=netMoAt(locId,inp,y+1,gross);
-    const collegeYear=(y+1>eduYears && y+1<=eduYears+4)?eduPayoutPerYear:0;
-    bal=bal*(1+rtn)+(netMo-cost)*12-(isFire?gross:0)-collegeYear;
+    bal=bal*(1+rtn)+(netMo-cost)*12-(isFire?gross:0);
     if(bal<=0)return null;
   }
   return null;
 }
 function netWorthTrajectory(locId,inp,cost,rtn,years){
-  // Model: fund is built years 1..eduYearsOut. Then paid out over the following
-  // 4 years to model tuition drawdown. Total drawn = perChild * kidsCount.
-  // This prevents the pre-funded amount from staying in the wealth pile after
-  // college is over.
+  // Model A: retirement wealth only. College contributions already reduce
+  // monthly cash flow via monthlyExtras, so the retirement pile grows more
+  // slowly during the fund-building years. The college fund itself is treated
+  // as an off-book asset (like a 529) and is not shown in this trajectory.
+  // Previously the code drained tuition from this pile too, which was a
+  // double-count. The saved contributions are the payment.
   const arr=[inp.savings];
   let bal=inp.savings;
   let gross=grossFor(inp,locId);
   const isFire=inp.work==='fire';
-  const eduTotal=(EDU_PRESETS[inp.eduTarget]||0)*(inp.eduKidsCount||0);
-  const eduYears=Math.max(1,inp.eduYearsOut??10);
-  const eduPayoutPerYear=eduTotal>0?eduTotal/4:0;
   for(let y=1;y<=years;y++){
     if(y>1 && !isFire)gross*=(1+(inp.incomeGrowth||0));
     const netMo=netMoAt(locId,inp,y,gross);
-    // College spending years: eduYears+1 through eduYears+4
-    const collegeYear=(y>eduYears && y<=eduYears+4)?eduPayoutPerYear:0;
-    bal=Math.max(0,bal*(1+rtn)+(netMo-cost)*12-(isFire?gross:0)-collegeYear);
+    bal=Math.max(0,bal*(1+rtn)+(netMo-cost)*12-(isFire?gross:0));
     arr.push(Math.round(bal));
   }
   return arr;
